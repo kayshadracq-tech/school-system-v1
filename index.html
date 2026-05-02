@@ -1,55 +1,44 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>School System</title>
-</head>
-<body>
-  <h2>School Information System</h2>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  <h3>Add Student</h3>
-  <input id="name" placeholder="Student name">
-  <button onclick="addStudent()">Add Student</button>
+  const firebaseConfig = {
+    apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
+    authDomain: "school-system-748cf.firebaseapp.com",
+    projectId: "school-system-748cf",
+    storageBucket: "school-system-748cf.firebasestorage.app",
+    messagingSenderId: "899412742738",
+    appId: "1:899412742738:web:7dc83a50b53789b196858b"
+  };
 
-  <h3>Student List</h3>
-  <ul id="list"></ul>
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-  <!-- Firebase Connection -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  const list = document.getElementById("list");
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
-      authDomain: "school-system-748cf.firebaseapp.com",
-      projectId: "school-system-748cf",
-      storageBucket: "school-system-748cf.firebasestorage.app",
-      messagingSenderId: "899412742738",
-      appId: "1:899412742738:web:7dc83a50b53789b196858b"
-    };
+  window.addStudent = async function () {
+    let name = document.getElementById("name").value;
+    if (!name) return;
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    await addDoc(collection(db, "students"), {
+      name: name
+    });
 
-    window.addStudent = async function () {
-      let name = document.getElementById("name").value;
+    loadStudents();
+    document.getElementById("name").value = "";
+  }
 
-      if (!name) return;
+  async function loadStudents() {
+    list.innerHTML = "";
 
-      // Save to Firebase
-      await addDoc(collection(db, "students"), {
-        name: name,
-        created: new Date()
-      });
+    const querySnapshot = await getDocs(collection(db, "students"));
 
-      // Show on screen
-      let list = document.getElementById("list");
+    querySnapshot.forEach((doc) => {
       let li = document.createElement("li");
-      li.textContent = name;
+      li.textContent = doc.data().name;
       list.appendChild(li);
+    });
+  }
 
-      document.getElementById("name").value = "";
-    }
-  </script>
-
-</body>
-</html>
+  loadStudents();
+</script>
