@@ -13,21 +13,43 @@
   <h3>Student List</h3>
   <ul id="list"></ul>
 
-  <script>
-    function addStudent() {
+  <!-- Firebase Connection -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
+      authDomain: "school-system-748cf.firebaseapp.com",
+      projectId: "school-system-748cf",
+      storageBucket: "school-system-748cf.firebasestorage.app",
+      messagingSenderId: "899412742738",
+      appId: "1:899412742738:web:7dc83a50b53789b196858b"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.addStudent = async function () {
       let name = document.getElementById("name").value;
 
       if (!name) return;
 
-      let list = document.getElementById("list");
+      // Save to Firebase
+      await addDoc(collection(db, "students"), {
+        name: name,
+        created: new Date()
+      });
 
+      // Show on screen
+      let list = document.getElementById("list");
       let li = document.createElement("li");
       li.textContent = name;
-
       list.appendChild(li);
 
       document.getElementById("name").value = "";
     }
   </script>
+
 </body>
 </html>
