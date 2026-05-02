@@ -6,18 +6,24 @@
 <body>
   <h2>School Information System</h2>
 
+  <h3>Add Student</h3>
   <input id="name" placeholder="Student name">
-  <button onclick="addStudent()">Add</button>
+  <button onclick="addStudent()">Add Student</button>
 
+  <h3>Student List</h3>
   <ul id="list"></ul>
 
   <script>
     function addStudent() {
       let name = document.getElementById("name").value;
+
+      if (!name) return;
+
       let list = document.getElementById("list");
 
       let li = document.createElement("li");
       li.textContent = name;
+
       list.appendChild(li);
 
       document.getElementById("name").value = "";
