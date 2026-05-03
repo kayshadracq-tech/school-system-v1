@@ -1,44 +1,31 @@
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<!DOCTYPE html>
+<html>
+<head>
+  <title>School System</title>
+</head>
+<body>
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
-    authDomain: "school-system-748cf.firebaseapp.com",
-    projectId: "school-system-748cf",
-    storageBucket: "school-system-748cf.firebasestorage.app",
-    messagingSenderId: "899412742738",
-    appId: "1:899412742738:web:7dc83a50b53789b196858b"
-  };
+<h2>School System (Test Mode)</h2>
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+<input id="name" placeholder="Student name">
+<button onclick="addStudent()">Add Student</button>
 
+<ul id="list"></ul>
+
+<script>
   const list = document.getElementById("list");
   const input = document.getElementById("name");
 
-  window.addStudent = async function () {
+  function addStudent() {
     if (!input.value) return;
 
-    await addDoc(collection(db, "students"), {
-      name: input.value
-    });
+    const li = document.createElement("li");
+    li.textContent = input.value;
 
+    list.appendChild(li);
     input.value = "";
-    loadStudents();
   }
-
-  async function loadStudents() {
-    list.innerHTML = "";
-
-    const querySnapshot = await getDocs(collection(db, "students"));
-
-    querySnapshot.forEach((doc) => {
-      const li = document.createElement("li");
-      li.textContent = doc.data().name;
-      list.appendChild(li);
-    });
-  }
-
-  loadStudents();
 </script>
+
+</body>
+</html>
