@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>School System</title>
+  <title>School Management System</title>
 </head>
 <body>
 
-<h2>School Information System</h2>
+<h2>School Management System</h2>
+
+<!-- STUDENTS -->
+<h3>Students</h3>
 
 <input id="name" placeholder="Student name"><br><br>
 <input id="age" placeholder="Age"><br><br>
@@ -14,12 +17,30 @@
 
 <button onclick="addStudent()">Add Student</button>
 
-<h3>Student List</h3>
-<ul id="list"></ul>
+<ul id="studentList"></ul>
+
+<hr>
+
+<!-- RESULTS -->
+<h3>Results System</h3>
+
+<input id="r_name" placeholder="Student name"><br><br>
+<input id="subject" placeholder="Subject"><br><br>
+<input id="term" placeholder="Term (1,2,3)"><br><br>
+<input id="mark" placeholder="Mark"><br><br>
+
+<button onclick="addResult()">Add Result</button>
+
+<ul id="resultsList"></ul>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    getDocs
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
@@ -33,9 +54,11 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  const list = document.getElementById("list");
+  const studentList = document.getElementById("studentList");
+  const resultsList = document.getElementById("resultsList");
 
-  // ADD STUDENT
+  // ---------------- STUDENTS ----------------
+
   window.addStudent = async function () {
     const name = document.getElementById("name").value;
     const age = document.getElementById("age").value;
@@ -45,37 +68,75 @@
     if (!name) return;
 
     await addDoc(collection(db, "students"), {
-      name: name,
-      age: age,
-      grade: grade,
+      name,
+      age,
+      grade,
       class: studentClass
     });
 
     loadStudents();
+  };
 
-    document.getElementById("name").value = "";
-    document.getElementById("age").value = "";
-    document.getElementById("grade").value = "";
-    document.getElementById("class").value = "";
-  }
-
-  // LOAD STUDENTS
   async function loadStudents() {
-    list.innerHTML = "";
+    studentList.innerHTML = "";
 
-    const querySnapshot = await getDocs(collection(db, "students"));
+    const snapshot = await getDocs(collection(db, "students"));
 
-    querySnapshot.forEach((doc) => {
+    snapshot.forEach((doc) => {
       const s = doc.data();
 
       const li = document.createElement("li");
-      li.textContent = `${s.name} | Age: ${s.age} | Grade: ${s.grade} | Class: ${s.class}`;
+      li.textContent =
+        s.name + " | Age: " + s.age +
+        " | Grade: " + s.grade +
+        " | Class: " + s.class;
 
-      list.appendChild(li);
+      studentList.appendChild(li);
     });
   }
 
+  // ---------------- RESULTS ----------------
+
+  window.addResult = async function () {
+    const name = document.getElementById("r_name").value;
+    const subject = document.getElementById("subject").value;
+    const term = document.getElementById("term").value;
+    const mark = document.getElementById("mark").value;
+
+    if (!name || !subject || !term || !mark) return;
+
+    await addDoc(collection(db, "results"), {
+      studentName: name,
+      subject,
+      term,
+      mark: Number(mark)
+    });
+
+    loadResults();
+  };
+
+  async function loadResults() {
+    resultsList.innerHTML = "";
+
+    const snapshot = await getDocs(collection(db, "results"));
+
+    snapshot.forEach((doc) => {
+      const r = doc.data();
+
+      const li = document.createElement("li");
+      li.textContent =
+        r.studentName +
+        " | " + r.subject +
+        " | Term " + r.term +
+        " | Mark: " + r.mark;
+
+      resultsList.appendChild(li);
+    });
+  }
+
+  // AUTO LOAD
   loadStudents();
+  loadResults();
 </script>
 
 </body>
