@@ -30,6 +30,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import {
   getFirestore,
   collection,
+  query,
+  where,
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -45,50 +47,61 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let current = null;
+let currentStudent = null;
 
 window.login = async function () {
-  const id = document.getElementById("studentId").value;
-  const pass = document.getElementById("password").value;
 
-  const snap = await getDocs(collection(db, "students"));
+  const q = query(
+    collection(db, "students"),
+    where("studentId", "==", studentId.value),
+    where("password", "==", password.value)
+  );
 
-  snap.forEach(doc => {
-    const s = doc.data();
+  const snap = await getDocs(q);
 
-    if (s.studentId === id && s.password === pass) {
-      current = s;
-    }
-  });
+  if (!snap.empty) {
+    snap.forEach(doc => {
+      currentStudent = doc.data();
+    });
 
-  if (current) {
-    document.getElementById("msg").innerText = "Login OK";
-    document.getElementById("dashboard").style.display = "block";
+    msg.innerText = "Login successful";
+    dashboard.style.display = "block";
+
     loadData();
+
   } else {
-    document.getElementById("msg").innerText = "Wrong login";
+    msg.innerText = "Wrong ID or password";
   }
 };
 
 async function loadData() {
+
   const res = document.getElementById("myResults");
   const fees = document.getElementById("myFees");
 
+  res.innerHTML = "";
+  fees.innerHTML = "";
+
+  // RESULTS
   const rSnap = await getDocs(collection(db, "results"));
-  const fSnap = await getDocs(collection(db, "fees"));
 
   rSnap.forEach(doc => {
     const r = doc.data();
-    if (r.studentName === current.name) {
+
+    if (r.studentId === currentStudent.studentId) {
       const li = document.createElement("li");
       li.textContent = r.subject + " - " + r.mark;
       res.appendChild(li);
     }
   });
 
+  // FEES
+  const fSnap = await getDocs(collection(db, "fees"));
+
   fSnap.forEach(doc => {
     const f = doc.data();
-    if (f.studentName === current.name) {
+
+    if (f.studentId === currentStudent.studentId) {
       const li = document.createElement("li");
       li.textContent = "Balance: " + f.balance;
       fees.appendChild(li);
