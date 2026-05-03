@@ -103,12 +103,18 @@
   </table>
 </div>
 
-<script type="module">
+
+  <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  getFirestore, collection, addDoc, getDocs,
-  deleteDoc, doc, updateDoc
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -123,62 +129,89 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let sEdit=null, rEdit=null, fEdit=null;
+let sEdit = null, rEdit = null, fEdit = null;
+
+/* ================= CLEAN INPUT ================= */
+function val(id){
+  return document.getElementById(id).value.trim();
+}
+
+/* ================= CHECK STUDENT EXISTS (FIXED) ================= */
+async function studentExists(id){
+  id = id.trim();
+  const snap = await getDocs(collection(db, "students"));
+
+  let found = false;
+
+  snap.forEach(d => {
+    const data = d.data();
+    if(String(data.studentId).trim() === id){
+      found = true;
+    }
+  });
+
+  return found;
+}
 
 /* ================= STUDENTS ================= */
-document.getElementById("addStudentBtn").onclick = async ()=>{
+document.getElementById("addStudentBtn").onclick = async () => {
 
-  const id = studentId.value;
-  if(!id) return alert("Student ID required");
+  const id = val("studentId");
 
-  const snap = await getDocs(collection(db,"students"));
-  let exists = false;
+  if(!id){
+    alert("Student ID required");
+    return;
+  }
 
-  snap.forEach(d=>{
-    if(d.data().studentId === id) exists = true;
+  if(await studentExists(id)){
+    alert("Student ID already exists!");
+    return;
+  }
+
+  await addDoc(collection(db, "students"), {
+    name: val("name"),
+    studentId: id,
+    password: val("password"),
+    age: val("age"),
+    grade: val("grade"),
+    class: val("className")
   });
 
-  if(exists) return alert("Student ID already exists!");
-
-  await addDoc(collection(db,"students"),{
-    name:name.value,
-    studentId:id,
-    password:password.value,
-    age:age.value,
-    grade:grade.value,
-    class:className.value
-  });
-
+  alert("Student added successfully!");
   loadStudents();
 };
 
-document.getElementById("updateStudentBtn").onclick = async ()=>{
-  if(!sEdit) return alert("Select student first");
+document.getElementById("updateStudentBtn").onclick = async () => {
+  if(!sEdit){
+    alert("Select student first");
+    return;
+  }
 
-  await updateDoc(doc(db,"students",sEdit),{
-    name:name.value,
-    studentId:studentId.value,
-    password:password.value,
-    age:age.value,
-    grade:grade.value,
-    class:className.value
+  await updateDoc(doc(db, "students", sEdit), {
+    name: val("name"),
+    studentId: val("studentId"),
+    password: val("password"),
+    age: val("age"),
+    grade: val("grade"),
+    class: val("className")
   });
 
-  sEdit=null;
+  alert("Student updated");
+  sEdit = null;
   loadStudents();
 };
 
 async function loadStudents(){
-  const table=studentTable;
-  table.innerHTML="";
+  const table = document.getElementById("studentTable");
+  table.innerHTML = "";
 
-  const snap=await getDocs(collection(db,"students"));
+  const snap = await getDocs(collection(db, "students"));
 
-  snap.forEach(d=>{
-    const s=d.data();
+  snap.forEach(d => {
+    const s = d.data();
 
-    const row=document.createElement("tr");
-    row.innerHTML=`
+    const row = document.createElement("tr");
+    row.innerHTML = `
       <td>${s.name}</td>
       <td>${s.studentId}</td>
       <td>${s.age}</td>
@@ -187,84 +220,90 @@ async function loadStudents(){
       <td></td>
     `;
 
-    const action=row.children[5];
+    const action = row.children[5];
 
-    const edit=document.createElement("button");
-    edit.textContent="Edit";
-    edit.className="edit";
-    edit.onclick=()=>{
-      sEdit=d.id;
-      name.value=s.name;
-      studentId.value=s.studentId;
-      password.value=s.password;
-      age.value=s.age;
-      grade.value=s.grade;
-      className.value=s.class;
+    const editBtn = document.createElement("button");
+    editBtn.textContent = "Edit";
+    editBtn.className = "edit";
+    editBtn.onclick = () => {
+      sEdit = d.id;
+      document.getElementById("name").value = s.name;
+      document.getElementById("studentId").value = s.studentId;
+      document.getElementById("password").value = s.password;
+      document.getElementById("age").value = s.age;
+      document.getElementById("grade").value = s.grade;
+      document.getElementById("className").value = s.class;
     };
 
-    const del=document.createElement("button");
-    del.textContent="Delete";
-    del.className="delete";
-    del.onclick=async()=>{
-      await deleteDoc(doc(db,"students",d.id));
+    const delBtn = document.createElement("button");
+    delBtn.textContent = "Delete";
+    delBtn.className = "delete";
+    delBtn.onclick = async () => {
+      await deleteDoc(doc(db, "students", d.id));
       loadStudents();
     };
 
-    action.appendChild(edit);
-    action.appendChild(del);
+    action.appendChild(editBtn);
+    action.appendChild(delBtn);
 
     table.appendChild(row);
   });
 }
 
-/* ================= RESULTS ================= */
-document.getElementById("addResultBtn").onclick = async ()=>{
+/* ================= RESULTS (FIXED VALIDATION) ================= */
+document.getElementById("addResultBtn").onclick = async () => {
 
-  const id = r_studentId.value;
-  const snap = await getDocs(collection(db,"students"));
+  const id = val("r_studentId");
 
-  let exists = false;
-  snap.forEach(d=>{
-    if(d.data().studentId === id) exists = true;
+  if(!id){
+    alert("Student ID required");
+    return;
+  }
+
+  if(!(await studentExists(id))){
+    alert("Student does not exist!");
+    return;
+  }
+
+  await addDoc(collection(db, "results"), {
+    studentId: id,
+    subject: val("subject"),
+    term: val("term"),
+    mark: val("mark")
   });
 
-  if(!exists) return alert("Student does not exist!");
-
-  await addDoc(collection(db,"results"),{
-    studentId:id,
-    subject:subject.value,
-    term:term.value,
-    mark:mark.value
-  });
-
+  alert("Result added");
   loadResults();
 };
 
-document.getElementById("updateResultBtn").onclick = async ()=>{
-  if(!rEdit) return alert("Select result");
+document.getElementById("updateResultBtn").onclick = async () => {
+  if(!rEdit){
+    alert("Select result first");
+    return;
+  }
 
-  await updateDoc(doc(db,"results",rEdit),{
-    studentId:r_studentId.value,
-    subject:subject.value,
-    term:term.value,
-    mark:mark.value
+  await updateDoc(doc(db, "results", rEdit), {
+    studentId: val("r_studentId"),
+    subject: val("subject"),
+    term: val("term"),
+    mark: val("mark")
   });
 
-  rEdit=null;
+  rEdit = null;
   loadResults();
 };
 
 async function loadResults(){
-  const table=resultsTable;
-  table.innerHTML="";
+  const table = document.getElementById("resultsTable");
+  table.innerHTML = "";
 
-  const snap=await getDocs(collection(db,"results"));
+  const snap = await getDocs(collection(db, "results"));
 
-  snap.forEach(d=>{
-    const r=d.data();
+  snap.forEach(d => {
+    const r = d.data();
 
-    const row=document.createElement("tr");
-    row.innerHTML=`
+    const row = document.createElement("tr");
+    row.innerHTML = `
       <td>${r.studentId}</td>
       <td>${r.subject}</td>
       <td>${r.term}</td>
@@ -272,24 +311,24 @@ async function loadResults(){
       <td></td>
     `;
 
-    const action=row.children[4];
+    const action = row.children[4];
 
-    const edit=document.createElement("button");
-    edit.textContent="Edit";
-    edit.className="edit";
-    edit.onclick=()=>{
-      rEdit=d.id;
-      r_studentId.value=r.studentId;
-      subject.value=r.subject;
-      term.value=r.term;
-      mark.value=r.mark;
+    const edit = document.createElement("button");
+    edit.textContent = "Edit";
+    edit.className = "edit";
+    edit.onclick = () => {
+      rEdit = d.id;
+      document.getElementById("r_studentId").value = r.studentId;
+      document.getElementById("subject").value = r.subject;
+      document.getElementById("term").value = r.term;
+      document.getElementById("mark").value = r.mark;
     };
 
-    const del=document.createElement("button");
-    del.textContent="Delete";
-    del.className="delete";
-    del.onclick=async()=>{
-      await deleteDoc(doc(db,"results",d.id));
+    const del = document.createElement("button");
+    del.textContent = "Delete";
+    del.className = "delete";
+    del.onclick = async () => {
+      await deleteDoc(doc(db, "results", d.id));
       loadResults();
     };
 
@@ -300,54 +339,66 @@ async function loadResults(){
   });
 }
 
-/* ================= FEES ================= */
-document.getElementById("addFeesBtn").onclick = async ()=>{
+/* ================= FEES (FIXED VALIDATION) ================= */
+document.getElementById("addFeesBtn").onclick = async () => {
 
-  const id = f_studentId.value;
-  const snap = await getDocs(collection(db,"students"));
+  const id = val("f_studentId");
 
-  let exists = false;
-  snap.forEach(d=>{
-    if(d.data().studentId === id) exists = true;
+  if(!id){
+    alert("Student ID required");
+    return;
+  }
+
+  if(!(await studentExists(id))){
+    alert("Student does not exist!");
+    return;
+  }
+
+  const total = Number(val("total"));
+  const paid = Number(val("paid"));
+
+  await addDoc(collection(db, "fees"), {
+    studentId: id,
+    totalFees: total,
+    amountPaid: paid,
+    balance: total - paid
   });
 
-  if(!exists) return alert("Student does not exist!");
-
-  await addDoc(collection(db,"fees"),{
-    studentId:id,
-    totalFees:Number(total.value),
-    amountPaid:Number(paid.value),
-    balance:Number(total.value - paid.value)
-  });
-
+  alert("Fees added");
   loadFees();
 };
 
-document.getElementById("updateFeesBtn").onclick = async ()=>{
-  if(!fEdit) return alert("Select fees");
+document.getElementById("updateFeesBtn").onclick = async () => {
+  if(!fEdit){
+    alert("Select fee first");
+    return;
+  }
 
-  await updateDoc(doc(db,"fees",fEdit),{
-    studentId:f_studentId.value,
-    totalFees:Number(total.value),
-    amountPaid:Number(paid.value),
-    balance:Number(total.value - paid.value)
+  const total = Number(val("total"));
+  const paid = Number(val("paid"));
+
+  await updateDoc(doc(db, "fees", fEdit), {
+    studentId: val("f_studentId"),
+    totalFees: total,
+    amountPaid: paid,
+    balance: total - paid
   });
 
-  fEdit=null;
+  fEdit = null;
   loadFees();
 };
 
 async function loadFees(){
-  const table=feesTable;
-  table.innerHTML="";
+  const table = document.getElementById("feesTable");
+  table.innerHTML = "";
 
-  const snap=await getDocs(collection(db,"fees"));
+  const snap = await getDocs(collection(db, "fees"));
 
-  snap.forEach(d=>{
-    const f=d.data();
+  snap.forEach(d => {
+    const f = d.data();
 
-    const row=document.createElement("tr");
-    row.innerHTML=`
+    const row = document.createElement("tr");
+    row.innerHTML = `
       <td>${f.studentId}</td>
       <td>${f.totalFees}</td>
       <td>${f.amountPaid}</td>
@@ -355,23 +406,23 @@ async function loadFees(){
       <td></td>
     `;
 
-    const action=row.children[4];
+    const action = row.children[4];
 
-    const edit=document.createElement("button");
-    edit.textContent="Edit";
-    edit.className="edit";
-    edit.onclick=()=>{
-      fEdit=d.id;
-      f_studentId.value=f.studentId;
-      total.value=f.totalFees;
-      paid.value=f.amountPaid;
+    const edit = document.createElement("button");
+    edit.textContent = "Edit";
+    edit.className = "edit";
+    edit.onclick = () => {
+      fEdit = d.id;
+      document.getElementById("f_studentId").value = f.studentId;
+      document.getElementById("total").value = f.totalFees;
+      document.getElementById("paid").value = f.amountPaid;
     };
 
-    const del=document.createElement("button");
-    del.textContent="Delete";
-    del.className="delete";
-    del.onclick=async()=>{
-      await deleteDoc(doc(db,"fees",d.id));
+    const del = document.createElement("button");
+    del.textContent = "Delete";
+    del.className = "delete";
+    del.onclick = async () => {
+      await deleteDoc(doc(db, "fees", d.id));
       loadFees();
     };
 
@@ -387,7 +438,10 @@ loadStudents();
 loadResults();
 loadFees();
 
-</script>
+  </script>
 
 </body>
-</html>
+</html> 
+
+
+    
