@@ -7,18 +7,10 @@
     body {
       font-family: Arial;
       background: #f4f6fb;
-      margin: 0;
       padding: 20px;
     }
 
     h2 { text-align: center; }
-
-    a {
-      margin-right: 10px;
-      text-decoration: none;
-      color: #007bff;
-      font-weight: bold;
-    }
 
     .section {
       background: white;
@@ -36,15 +28,13 @@
     }
 
     button {
-      padding: 8px;
+      width: 100%;
+      padding: 10px;
       background: #007bff;
       color: white;
       border: none;
       cursor: pointer;
-      width: 100%;
     }
-
-    button:hover { background: #0056b3; }
 
     table {
       width: 100%;
@@ -63,13 +53,15 @@
       text-align: center;
     }
 
-    tr:nth-child(even) { background: #f2f2f2; }
+    tr:nth-child(even) {
+      background: #f2f2f2;
+    }
 
-    .delete-btn {
+    .delete {
       background: red;
-      padding: 5px;
-      border: none;
       color: white;
+      border: none;
+      padding: 5px;
       cursor: pointer;
     }
   </style>
@@ -79,38 +71,30 @@
 
 <h2>Admin Dashboard</h2>
 
-<a href="index.html">Home</a> |
-<a href="student.html">Student Portal</a>
-
-<!-- ================= STUDENTS ================= -->
+<!-- STUDENTS -->
 <div class="section">
   <h3>Add Student</h3>
 
   <input id="name" placeholder="Student name">
   <input id="studentId" placeholder="Student ID">
-  <input id="password" type="password" placeholder="Password">
+  <input id="password" placeholder="Password">
   <input id="age" placeholder="Age">
   <input id="grade" placeholder="Grade">
-  <input id="class" placeholder="Class">
+  <input id="className" placeholder="Class">
 
-  <button id="btnStudent">Add Student</button>
+  <button onclick="addStudent()">Add Student</button>
 
   <table>
     <thead>
       <tr>
-        <th>Name</th>
-        <th>ID</th>
-        <th>Age</th>
-        <th>Grade</th>
-        <th>Class</th>
-        <th>Action</th>
+        <th>Name</th><th>ID</th><th>Age</th><th>Grade</th><th>Class</th><th>Action</th>
       </tr>
     </thead>
     <tbody id="studentTable"></tbody>
   </table>
 </div>
 
-<!-- ================= RESULTS ================= -->
+<!-- RESULTS -->
 <div class="section">
   <h3>Results</h3>
 
@@ -119,23 +103,19 @@
   <input id="term" placeholder="Term">
   <input id="mark" placeholder="Mark">
 
-  <button id="btnResult">Add Result</button>
+  <button onclick="addResult()">Add Result</button>
 
   <table>
     <thead>
       <tr>
-        <th>ID</th>
-        <th>Subject</th>
-        <th>Term</th>
-        <th>Mark</th>
-        <th>Action</th>
+        <th>ID</th><th>Subject</th><th>Term</th><th>Mark</th><th>Action</th>
       </tr>
     </thead>
     <tbody id="resultsTable"></tbody>
   </table>
 </div>
 
-<!-- ================= FEES ================= -->
+<!-- FEES -->
 <div class="section">
   <h3>Fees</h3>
 
@@ -143,16 +123,12 @@
   <input id="total" placeholder="Total fees">
   <input id="paid" placeholder="Paid">
 
-  <button id="btnFees">Add Fees</button>
+  <button onclick="addFees()">Add Fees</button>
 
   <table>
     <thead>
       <tr>
-        <th>ID</th>
-        <th>Total</th>
-        <th>Paid</th>
-        <th>Balance</th>
-        <th>Action</th>
+        <th>ID</th><th>Total</th><th>Paid</th><th>Balance</th><th>Action</th>
       </tr>
     </thead>
     <tbody id="feesTable"></tbody>
@@ -183,49 +159,44 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* BUTTON EVENTS */
-document.getElementById("btnStudent").onclick = addStudent;
-document.getElementById("btnResult").onclick = addResult;
-document.getElementById("btnFees").onclick = addFees;
-
 /* ================= ADD STUDENT ================= */
-async function addStudent() {
+window.addStudent = async function () {
 
   await addDoc(collection(db, "students"), {
-    name: name.value,
-    studentId: studentId.value,
-    password: password.value,
-    age: age.value,
-    grade: grade.value,
-    class: class.value
+    name: document.getElementById("name").value,
+    studentId: document.getElementById("studentId").value,
+    password: document.getElementById("password").value,
+    age: document.getElementById("age").value,
+    grade: document.getElementById("grade").value,
+    class: document.getElementById("className").value
   });
 
   alert("Student added");
   loadStudents();
-}
+};
 
 /* ================= ADD RESULT ================= */
-async function addResult() {
+window.addResult = async function () {
 
   await addDoc(collection(db, "results"), {
-    studentId: r_studentId.value,
-    subject: subject.value,
-    term: term.value,
-    mark: mark.value
+    studentId: document.getElementById("r_studentId").value,
+    subject: document.getElementById("subject").value,
+    term: document.getElementById("term").value,
+    mark: document.getElementById("mark").value
   });
 
   alert("Result added");
   loadResults();
-}
+};
 
 /* ================= ADD FEES ================= */
-async function addFees() {
+window.addFees = async function () {
 
-  const totalVal = Number(total.value);
-  const paidVal = Number(paid.value);
+  const totalVal = Number(document.getElementById("total").value);
+  const paidVal = Number(document.getElementById("paid").value);
 
   await addDoc(collection(db, "fees"), {
-    studentId: f_studentId.value,
+    studentId: document.getElementById("f_studentId").value,
     totalFees: totalVal,
     amountPaid: paidVal,
     balance: totalVal - paidVal
@@ -233,31 +204,26 @@ async function addFees() {
 
   alert("Fees added");
   loadFees();
-}
-
-/* ================= DELETE ================= */
-
-async function deleteItem(collectionName, id) {
-  await deleteDoc(doc(db, collectionName, id));
-}
+};
 
 /* ================= LOAD STUDENTS ================= */
 async function loadStudents() {
-  studentTable.innerHTML = "";
+  const table = document.getElementById("studentTable");
+  table.innerHTML = "";
 
   const snap = await getDocs(collection(db, "students"));
 
   snap.forEach(d => {
     const s = d.data();
 
-    studentTable.innerHTML += `
+    table.innerHTML += `
       <tr>
         <td>${s.name}</td>
         <td>${s.studentId}</td>
         <td>${s.age}</td>
         <td>${s.grade}</td>
         <td>${s.class}</td>
-        <td><button class="delete-btn" onclick="delStudent('${d.id}')">Delete</button></td>
+        <td><button class="delete" onclick="delStudent('${d.id}')">X</button></td>
       </tr>
     `;
   });
@@ -265,20 +231,21 @@ async function loadStudents() {
 
 /* ================= LOAD RESULTS ================= */
 async function loadResults() {
-  resultsTable.innerHTML = "";
+  const table = document.getElementById("resultsTable");
+  table.innerHTML = "";
 
   const snap = await getDocs(collection(db, "results"));
 
   snap.forEach(d => {
     const r = d.data();
 
-    resultsTable.innerHTML += `
+    table.innerHTML += `
       <tr>
         <td>${r.studentId}</td>
         <td>${r.subject}</td>
         <td>${r.term}</td>
         <td>${r.mark}</td>
-        <td><button class="delete-btn" onclick="delResult('${d.id}')">Delete</button></td>
+        <td><button class="delete" onclick="delResult('${d.id}')">X</button></td>
       </tr>
     `;
   });
@@ -286,27 +253,27 @@ async function loadResults() {
 
 /* ================= LOAD FEES ================= */
 async function loadFees() {
-  feesTable.innerHTML = "";
+  const table = document.getElementById("feesTable");
+  table.innerHTML = "";
 
   const snap = await getDocs(collection(db, "fees"));
 
   snap.forEach(d => {
     const f = d.data();
 
-    feesTable.innerHTML += `
+    table.innerHTML += `
       <tr>
         <td>${f.studentId}</td>
         <td>${f.totalFees}</td>
         <td>${f.amountPaid}</td>
         <td>${f.balance}</td>
-        <td><button class="delete-btn" onclick="delFees('${d.id}')">Delete</button></td>
+        <td><button class="delete" onclick="delFees('${d.id}')">X</button></td>
       </tr>
     `;
   });
 }
 
-/* ================= DELETE FUNCTIONS ================= */
-
+/* ================= DELETE ================= */
 window.delStudent = async (id) => {
   await deleteDoc(doc(db, "students", id));
   loadStudents();
