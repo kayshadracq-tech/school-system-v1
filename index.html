@@ -36,7 +36,7 @@
 
 <h2>Admin Dashboard</h2>
 
-<!-- STUDENTS (UNCHANGED) -->
+<!-- STUDENTS -->
 <div class="section">
   <h3>Students</h3>
 
@@ -125,70 +125,110 @@ const db = getFirestore(app);
 
 let sEdit=null, rEdit=null, fEdit=null;
 
-/* ================= HELPERS (NEW FIX) ================= */
+/* ================= STUDENTS ================= */
+document.getElementById("addStudentBtn").onclick = async ()=>{
 
-async function studentExists(id){
+  const id = studentId.value;
+  if(!id) return alert("Student ID required");
+
   const snap = await getDocs(collection(db,"students"));
-  let found = false;
+  let exists = false;
 
   snap.forEach(d=>{
-    if(d.data().studentId?.trim() === id?.trim()){
-      found = true;
-    }
+    if(d.data().studentId === id) exists = true;
   });
 
-  return found;
-}
+  if(exists) return alert("Student ID already exists!");
 
-async function resultExists(id, subject, term){
-  const snap = await getDocs(collection(db,"results"));
-  let found = false;
+  await addDoc(collection(db,"students"),{
+    name:name.value,
+    studentId:id,
+    password:password.value,
+    age:age.value,
+    grade:grade.value,
+    class:className.value
+  });
+
+  loadStudents();
+};
+
+document.getElementById("updateStudentBtn").onclick = async ()=>{
+  if(!sEdit) return alert("Select student first");
+
+  await updateDoc(doc(db,"students",sEdit),{
+    name:name.value,
+    studentId:studentId.value,
+    password:password.value,
+    age:age.value,
+    grade:grade.value,
+    class:className.value
+  });
+
+  sEdit=null;
+  loadStudents();
+};
+
+async function loadStudents(){
+  const table=studentTable;
+  table.innerHTML="";
+
+  const snap=await getDocs(collection(db,"students"));
 
   snap.forEach(d=>{
-    const r = d.data();
-    if(
-      r.studentId === id &&
-      r.subject === subject &&
-      r.term === term
-    ){
-      found = true;
-    }
-  });
+    const s=d.data();
 
-  return found;
+    const row=document.createElement("tr");
+    row.innerHTML=`
+      <td>${s.name}</td>
+      <td>${s.studentId}</td>
+      <td>${s.age}</td>
+      <td>${s.grade}</td>
+      <td>${s.class}</td>
+      <td></td>
+    `;
+
+    const action=row.children[5];
+
+    const edit=document.createElement("button");
+    edit.textContent="Edit";
+    edit.className="edit";
+    edit.onclick=()=>{
+      sEdit=d.id;
+      name.value=s.name;
+      studentId.value=s.studentId;
+      password.value=s.password;
+      age.value=s.age;
+      grade.value=s.grade;
+      className.value=s.class;
+    };
+
+    const del=document.createElement("button");
+    del.textContent="Delete";
+    del.className="delete";
+    del.onclick=async()=>{
+      await deleteDoc(doc(db,"students",d.id));
+      loadStudents();
+    };
+
+    action.appendChild(edit);
+    action.appendChild(del);
+
+    table.appendChild(row);
+  });
 }
 
-async function feeExists(id){
-  const snap = await getDocs(collection(db,"fees"));
-  let found = false;
-
-  snap.forEach(d=>{
-    if(d.data().studentId === id){
-      found = true;
-    }
-  });
-
-  return found;
-}
-
-/* ================= RESULTS FIXED ================= */
-
+/* ================= RESULTS ================= */
 document.getElementById("addResultBtn").onclick = async ()=>{
 
-  const id = r_studentId.value.trim();
+  const id = r_studentId.value;
+  const snap = await getDocs(collection(db,"students"));
 
-  if(!id || !subject.value || !term.value){
-    return alert("Fill all result fields");
-  }
+  let exists = false;
+  snap.forEach(d=>{
+    if(d.data().studentId === id) exists = true;
+  });
 
-  if(!(await studentExists(id))){
-    return alert("Student does not exist!");
-  }
-
-  // 🔴 PREVENT DUPLICATE RESULT
-  if(await resultExists(id, subject.value, term.value)){
-    return alert("This result already exists for this term and subject!");
-  }
+  if(!exists) return alert("Student does not exist!");
 
   await addDoc(collection(db,"results"),{
     studentId:id,
@@ -200,40 +240,149 @@ document.getElementById("addResultBtn").onclick = async ()=>{
   loadResults();
 };
 
-/* ================= FEES FIXED ================= */
+document.getElementById("updateResultBtn").onclick = async ()=>{
+  if(!rEdit) return alert("Select result");
 
+  await updateDoc(doc(db,"results",rEdit),{
+    studentId:r_studentId.value,
+    subject:subject.value,
+    term:term.value,
+    mark:mark.value
+  });
+
+  rEdit=null;
+  loadResults();
+};
+
+async function loadResults(){
+  const table=resultsTable;
+  table.innerHTML="";
+
+  const snap=await getDocs(collection(db,"results"));
+
+  snap.forEach(d=>{
+    const r=d.data();
+
+    const row=document.createElement("tr");
+    row.innerHTML=`
+      <td>${r.studentId}</td>
+      <td>${r.subject}</td>
+      <td>${r.term}</td>
+      <td>${r.mark}</td>
+      <td></td>
+    `;
+
+    const action=row.children[4];
+
+    const edit=document.createElement("button");
+    edit.textContent="Edit";
+    edit.className="edit";
+    edit.onclick=()=>{
+      rEdit=d.id;
+      r_studentId.value=r.studentId;
+      subject.value=r.subject;
+      term.value=r.term;
+      mark.value=r.mark;
+    };
+
+    const del=document.createElement("button");
+    del.textContent="Delete";
+    del.className="delete";
+    del.onclick=async()=>{
+      await deleteDoc(doc(db,"results",d.id));
+      loadResults();
+    };
+
+    action.appendChild(edit);
+    action.appendChild(del);
+
+    table.appendChild(row);
+  });
+}
+
+/* ================= FEES ================= */
 document.getElementById("addFeesBtn").onclick = async ()=>{
 
-  const id = f_studentId.value.trim();
+  const id = f_studentId.value;
+  const snap = await getDocs(collection(db,"students"));
 
-  if(!id){
-    return alert("Enter student ID");
-  }
+  let exists = false;
+  snap.forEach(d=>{
+    if(d.data().studentId === id) exists = true;
+  });
 
-  if(!(await studentExists(id))){
-    return alert("Student does not exist!");
-  }
-
-  // 🔴 PREVENT DUPLICATE FEES PER STUDENT
-  if(await feeExists(id)){
-    return alert("Fees already recorded for this student!");
-  }
-
-  let totalVal = Number(total.value);
-  let paidVal = Number(paid.value);
+  if(!exists) return alert("Student does not exist!");
 
   await addDoc(collection(db,"fees"),{
     studentId:id,
-    totalFees:totalVal,
-    amountPaid:paidVal,
-    balance:totalVal - paidVal
+    totalFees:Number(total.value),
+    amountPaid:Number(paid.value),
+    balance:Number(total.value - paid.value)
   });
 
   loadFees();
 };
 
-/* ================= KEEP YOUR ORIGINAL LOAD FUNCTIONS ================= */
+document.getElementById("updateFeesBtn").onclick = async ()=>{
+  if(!fEdit) return alert("Select fees");
 
+  await updateDoc(doc(db,"fees",fEdit),{
+    studentId:f_studentId.value,
+    totalFees:Number(total.value),
+    amountPaid:Number(paid.value),
+    balance:Number(total.value - paid.value)
+  });
+
+  fEdit=null;
+  loadFees();
+};
+
+async function loadFees(){
+  const table=feesTable;
+  table.innerHTML="";
+
+  const snap=await getDocs(collection(db,"fees"));
+
+  snap.forEach(d=>{
+    const f=d.data();
+
+    const row=document.createElement("tr");
+    row.innerHTML=`
+      <td>${f.studentId}</td>
+      <td>${f.totalFees}</td>
+      <td>${f.amountPaid}</td>
+      <td>${f.balance}</td>
+      <td></td>
+    `;
+
+    const action=row.children[4];
+
+    const edit=document.createElement("button");
+    edit.textContent="Edit";
+    edit.className="edit";
+    edit.onclick=()=>{
+      fEdit=d.id;
+      f_studentId.value=f.studentId;
+      total.value=f.totalFees;
+      paid.value=f.amountPaid;
+    };
+
+    const del=document.createElement("button");
+    del.textContent="Delete";
+    del.className="delete";
+    del.onclick=async()=>{
+      await deleteDoc(doc(db,"fees",d.id));
+      loadFees();
+    };
+
+    action.appendChild(edit);
+    action.appendChild(del);
+
+    table.appendChild(row);
+  });
+}
+
+/* INIT */
 loadStudents();
 loadResults();
 loadFees();
