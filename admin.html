@@ -30,11 +30,13 @@
     button {
       width: 100%;
       padding: 10px;
-      background: #007bff;
-      color: white;
       border: none;
       cursor: pointer;
+      margin-top: 5px;
     }
+
+    .add { background: #007bff; color: white; }
+    .update { background: green; color: white; }
 
     table {
       width: 100%;
@@ -53,17 +55,10 @@
       text-align: center;
     }
 
-    tr:nth-child(even) {
-      background: #f2f2f2;
-    }
+    tr:nth-child(even) { background: #f2f2f2; }
 
-    .delete {
-      background: red;
-      color: white;
-      border: none;
-      padding: 5px;
-      cursor: pointer;
-    }
+    .delete { background: red; color: white; }
+    .edit { background: orange; color: white; }
   </style>
 </head>
 
@@ -71,9 +66,9 @@
 
 <h2>Admin Dashboard</h2>
 
-<!-- STUDENTS -->
+<!-- ================= STUDENTS ================= -->
 <div class="section">
-  <h3>Add Student</h3>
+  <h3>Student Management</h3>
 
   <input id="name" placeholder="Student name">
   <input id="studentId" placeholder="Student ID">
@@ -82,7 +77,8 @@
   <input id="grade" placeholder="Grade">
   <input id="className" placeholder="Class">
 
-  <button onclick="addStudent()">Add Student</button>
+  <button class="add" onclick="addStudent()">Add Student</button>
+  <button class="update" onclick="updateStudent()">Update Student</button>
 
   <table>
     <thead>
@@ -91,47 +87,6 @@
       </tr>
     </thead>
     <tbody id="studentTable"></tbody>
-  </table>
-</div>
-
-<!-- RESULTS -->
-<div class="section">
-  <h3>Results</h3>
-
-  <input id="r_studentId" placeholder="Student ID">
-  <input id="subject" placeholder="Subject">
-  <input id="term" placeholder="Term">
-  <input id="mark" placeholder="Mark">
-
-  <button onclick="addResult()">Add Result</button>
-
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th><th>Subject</th><th>Term</th><th>Mark</th><th>Action</th>
-      </tr>
-    </thead>
-    <tbody id="resultsTable"></tbody>
-  </table>
-</div>
-
-<!-- FEES -->
-<div class="section">
-  <h3>Fees</h3>
-
-  <input id="f_studentId" placeholder="Student ID">
-  <input id="total" placeholder="Total fees">
-  <input id="paid" placeholder="Paid">
-
-  <button onclick="addFees()">Add Fees</button>
-
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th><th>Total</th><th>Paid</th><th>Balance</th><th>Action</th>
-      </tr>
-    </thead>
-    <tbody id="feesTable"></tbody>
   </table>
 </div>
 
@@ -144,7 +99,8 @@ import {
   addDoc,
   getDocs,
   deleteDoc,
-  doc
+  doc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -159,140 +115,96 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+let editId = null;
+
 /* ================= ADD STUDENT ================= */
 window.addStudent = async function () {
 
   await addDoc(collection(db, "students"), {
-    name: document.getElementById("name").value,
-    studentId: document.getElementById("studentId").value,
-    password: document.getElementById("password").value,
-    age: document.getElementById("age").value,
-    grade: document.getElementById("grade").value,
-    class: document.getElementById("className").value
+    name: name.value,
+    studentId: studentId.value,
+    password: password.value,
+    age: age.value,
+    grade: grade.value,
+    class: className.value
   });
 
   alert("Student added");
   loadStudents();
 };
 
-/* ================= ADD RESULT ================= */
-window.addResult = async function () {
-
-  await addDoc(collection(db, "results"), {
-    studentId: document.getElementById("r_studentId").value,
-    subject: document.getElementById("subject").value,
-    term: document.getElementById("term").value,
-    mark: document.getElementById("mark").value
-  });
-
-  alert("Result added");
-  loadResults();
-};
-
-/* ================= ADD FEES ================= */
-window.addFees = async function () {
-
-  const totalVal = Number(document.getElementById("total").value);
-  const paidVal = Number(document.getElementById("paid").value);
-
-  await addDoc(collection(db, "fees"), {
-    studentId: document.getElementById("f_studentId").value,
-    totalFees: totalVal,
-    amountPaid: paidVal,
-    balance: totalVal - paidVal
-  });
-
-  alert("Fees added");
-  loadFees();
-};
-
-/* ================= LOAD STUDENTS ================= */
+/* ================= LOAD ================= */
 async function loadStudents() {
-  const table = document.getElementById("studentTable");
-  table.innerHTML = "";
+  studentTable.innerHTML = "";
 
   const snap = await getDocs(collection(db, "students"));
 
   snap.forEach(d => {
     const s = d.data();
 
-    table.innerHTML += `
+    studentTable.innerHTML += `
       <tr>
         <td>${s.name}</td>
         <td>${s.studentId}</td>
         <td>${s.age}</td>
         <td>${s.grade}</td>
         <td>${s.class}</td>
-        <td><button class="delete" onclick="delStudent('${d.id}')">X</button></td>
+        <td>
+          <button class="edit" onclick="editStudent('${d.id}','${s.name}','${s.studentId}','${s.password}','${s.age}','${s.grade}','${s.class}')">Edit</button>
+          <button class="delete" onclick="deleteStudent('${d.id}')">Delete</button>
+        </td>
       </tr>
     `;
   });
 }
 
-/* ================= LOAD RESULTS ================= */
-async function loadResults() {
-  const table = document.getElementById("resultsTable");
-  table.innerHTML = "";
+/* ================= EDIT ================= */
+window.editStudent = function(id, nameVal, studentIdVal, passwordVal, ageVal, gradeVal, classVal) {
 
-  const snap = await getDocs(collection(db, "results"));
+  editId = id;
 
-  snap.forEach(d => {
-    const r = d.data();
+  name.value = nameVal;
+  studentId.value = studentIdVal;
+  password.value = passwordVal;
+  age.value = ageVal;
+  grade.value = gradeVal;
+  className.value = classVal;
+};
 
-    table.innerHTML += `
-      <tr>
-        <td>${r.studentId}</td>
-        <td>${r.subject}</td>
-        <td>${r.term}</td>
-        <td>${r.mark}</td>
-        <td><button class="delete" onclick="delResult('${d.id}')">X</button></td>
-      </tr>
-    `;
+/* ================= UPDATE ================= */
+window.updateStudent = async function () {
+
+  if (!editId) {
+    alert("Select a student to edit first");
+    return;
+  }
+
+  const ref = doc(db, "students", editId);
+
+  await updateDoc(ref, {
+    name: name.value,
+    studentId: studentId.value,
+    password: password.value,
+    age: age.value,
+    grade: grade.value,
+    class: className.value
   });
-}
 
-/* ================= LOAD FEES ================= */
-async function loadFees() {
-  const table = document.getElementById("feesTable");
-  table.innerHTML = "";
+  alert("Student updated");
 
-  const snap = await getDocs(collection(db, "fees"));
+  editId = null;
 
-  snap.forEach(d => {
-    const f = d.data();
-
-    table.innerHTML += `
-      <tr>
-        <td>${f.studentId}</td>
-        <td>${f.totalFees}</td>
-        <td>${f.amountPaid}</td>
-        <td>${f.balance}</td>
-        <td><button class="delete" onclick="delFees('${d.id}')">X</button></td>
-      </tr>
-    `;
-  });
-}
+  loadStudents();
+};
 
 /* ================= DELETE ================= */
-window.delStudent = async (id) => {
+window.deleteStudent = async function(id) {
   await deleteDoc(doc(db, "students", id));
   loadStudents();
 };
 
-window.delResult = async (id) => {
-  await deleteDoc(doc(db, "results", id));
-  loadResults();
-};
-
-window.delFees = async (id) => {
-  await deleteDoc(doc(db, "fees", id));
-  loadFees();
-};
-
 /* INIT */
 loadStudents();
-loadResults();
-loadFees();
 
 </script>
 
