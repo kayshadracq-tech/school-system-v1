@@ -7,7 +7,7 @@
 
 <h2>School Management System</h2>
 
-<!-- STUDENTS -->
+<!-- ================= STUDENTS ================= -->
 <h3>Students</h3>
 
 <input id="name" placeholder="Student name"><br><br>
@@ -21,7 +21,7 @@
 
 <hr>
 
-<!-- RESULTS -->
+<!-- ================= RESULTS ================= -->
 <h3>Results System</h3>
 
 <input id="r_name" placeholder="Student name"><br><br>
@@ -33,6 +33,20 @@
 
 <ul id="resultsList"></ul>
 
+<hr>
+
+<!-- ================= FEES ================= -->
+<h3>Fees Management</h3>
+
+<input id="f_name" placeholder="Student name"><br><br>
+<input id="total" placeholder="Total fees"><br><br>
+<input id="paid" placeholder="Amount paid"><br><br>
+
+<button onclick="addFees()">Add Fees Record</button>
+
+<ul id="feesList"></ul>
+
+<!-- ================= FIREBASE SCRIPT ================= -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import {
@@ -56,9 +70,9 @@
 
   const studentList = document.getElementById("studentList");
   const resultsList = document.getElementById("resultsList");
+  const feesList = document.getElementById("feesList");
 
-  // ---------------- STUDENTS ----------------
-
+  // ================= STUDENTS =================
   window.addStudent = async function () {
     const name = document.getElementById("name").value;
     const age = document.getElementById("age").value;
@@ -87,7 +101,8 @@
 
       const li = document.createElement("li");
       li.textContent =
-        s.name + " | Age: " + s.age +
+        s.name +
+        " | Age: " + s.age +
         " | Grade: " + s.grade +
         " | Class: " + s.class;
 
@@ -95,8 +110,7 @@
     });
   }
 
-  // ---------------- RESULTS ----------------
-
+  // ================= RESULTS =================
   window.addResult = async function () {
     const name = document.getElementById("r_name").value;
     const subject = document.getElementById("subject").value;
@@ -134,9 +148,49 @@
     });
   }
 
-  // AUTO LOAD
+  // ================= FEES =================
+  window.addFees = async function () {
+    const name = document.getElementById("f_name").value;
+    const total = Number(document.getElementById("total").value);
+    const paid = Number(document.getElementById("paid").value);
+
+    if (!name || !total || !paid) return;
+
+    const balance = total - paid;
+
+    await addDoc(collection(db, "fees"), {
+      studentName: name,
+      totalFees: total,
+      amountPaid: paid,
+      balance: balance
+    });
+
+    loadFees();
+  };
+
+  async function loadFees() {
+    feesList.innerHTML = "";
+
+    const snapshot = await getDocs(collection(db, "fees"));
+
+    snapshot.forEach((doc) => {
+      const f = doc.data();
+
+      const li = document.createElement("li");
+      li.textContent =
+        f.studentName +
+        " | Total: " + f.totalFees +
+        " | Paid: " + f.amountPaid +
+        " | Balance: " + f.balance;
+
+      feesList.appendChild(li);
+    });
+  }
+
+  // ================= AUTO LOAD =================
   loadStudents();
   loadResults();
+  loadFees();
 </script>
 
 </body>
