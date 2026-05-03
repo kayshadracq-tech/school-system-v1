@@ -59,7 +59,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import {
   getFirestore,
   collection,
-  addDoc
+  addDoc,
+  getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -74,34 +75,28 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ================= STUDENT ================= */
+/* ================= STUDENT SAVE ================= */
 window.addStudent = async function () {
   try {
-    const name = document.getElementById("name").value;
-    const studentId = document.getElementById("studentId").value;
-    const password = document.getElementById("password").value;
-    const age = document.getElementById("age").value;
-    const grade = document.getElementById("grade").value;
-    const studentClass = document.getElementById("class").value;
-
     await addDoc(collection(db, "students"), {
-      name,
-      studentId,
-      password,
-      age,
-      grade,
-      class: studentClass
+      name: name.value,
+      studentId: studentId.value,
+      password: password.value,
+      age: age.value,
+      grade: grade.value,
+      class: class.value
     });
 
     alert("Student saved successfully!");
 
-    // clear form
-    document.getElementById("name").value = "";
-    document.getElementById("studentId").value = "";
-    document.getElementById("password").value = "";
-    document.getElementById("age").value = "";
-    document.getElementById("grade").value = "";
-    document.getElementById("class").value = "";
+    loadStudents();
+
+    name.value = "";
+    studentId.value = "";
+    password.value = "";
+    age.value = "";
+    grade.value = "";
+    class.value = "";
 
   } catch (error) {
     console.error(error);
@@ -109,17 +104,19 @@ window.addStudent = async function () {
   }
 };
 
-/* ================= RESULTS ================= */
+/* ================= RESULT SAVE ================= */
 window.addResult = async function () {
   try {
     await addDoc(collection(db, "results"), {
-      studentId: document.getElementById("r_studentId").value,
-      subject: document.getElementById("subject").value,
-      term: document.getElementById("term").value,
-      mark: document.getElementById("mark").value
+      studentId: r_studentId.value,
+      subject: subject.value,
+      term: term.value,
+      mark: mark.value
     });
 
     alert("Result saved successfully!");
+
+    loadResults();
 
   } catch (error) {
     console.error(error);
@@ -127,14 +124,14 @@ window.addResult = async function () {
   }
 };
 
-/* ================= FEES ================= */
+/* ================= FEES SAVE ================= */
 window.addFees = async function () {
   try {
-    const totalVal = Number(document.getElementById("total").value);
-    const paidVal = Number(document.getElementById("paid").value);
+    const totalVal = Number(total.value);
+    const paidVal = Number(paid.value);
 
     await addDoc(collection(db, "fees"), {
-      studentId: document.getElementById("f_studentId").value,
+      studentId: f_studentId.value,
       totalFees: totalVal,
       amountPaid: paidVal,
       balance: totalVal - paidVal
@@ -142,11 +139,57 @@ window.addFees = async function () {
 
     alert("Fees saved successfully!");
 
+    loadFees();
+
   } catch (error) {
     console.error(error);
     alert("Error saving fees");
   }
 };
+
+/* ================= LOAD DATA (NEW PART) ================= */
+
+async function loadStudents() {
+  studentList.innerHTML = "";
+  const snap = await getDocs(collection(db, "students"));
+
+  snap.forEach(doc => {
+    const s = doc.data();
+    const li = document.createElement("li");
+    li.textContent = `${s.name} | ${s.studentId} | ${s.grade}`;
+    studentList.appendChild(li);
+  });
+}
+
+async function loadResults() {
+  resultsList.innerHTML = "";
+  const snap = await getDocs(collection(db, "results"));
+
+  snap.forEach(doc => {
+    const r = doc.data();
+    const li = document.createElement("li");
+    li.textContent = `${r.studentId} | ${r.subject} | ${r.mark}`;
+    resultsList.appendChild(li);
+  });
+}
+
+async function loadFees() {
+  feesList.innerHTML = "";
+  const snap = await getDocs(collection(db, "fees"));
+
+  snap.forEach(doc => {
+    const f = doc.data();
+    const li = document.createElement("li");
+    li.textContent = `${f.studentId} | Balance: ${f.balance}`;
+    feesList.appendChild(li);
+  });
+}
+
+/* RUN ON PAGE LOAD */
+loadStudents();
+loadResults();
+loadFees();
+
 </script>
 
 </body>
