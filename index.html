@@ -15,29 +15,38 @@
   const db = getFirestore(app);
 
   const list = document.getElementById("list");
+  const input = document.getElementById("name");
 
+  // FIX: prevent crash
   window.addStudent = async function () {
-    let name = document.getElementById("name").value;
-    if (!name) return;
+    try {
+      if (!input.value) return;
 
-    await addDoc(collection(db, "students"), {
-      name: name
-    });
+      await addDoc(collection(db, "students"), {
+        name: input.value
+      });
 
-    loadStudents();
-    document.getElementById("name").value = "";
+      input.value = "";
+      loadStudents();
+    } catch (e) {
+      console.error("Error:", e);
+    }
   }
 
   async function loadStudents() {
-    list.innerHTML = "";
+    try {
+      list.innerHTML = "";
 
-    const querySnapshot = await getDocs(collection(db, "students"));
+      const querySnapshot = await getDocs(collection(db, "students"));
 
-    querySnapshot.forEach((doc) => {
-      let li = document.createElement("li");
-      li.textContent = doc.data().name;
-      list.appendChild(li);
-    });
+      querySnapshot.forEach((doc) => {
+        const li = document.createElement("li");
+        li.textContent = doc.data().name;
+        list.appendChild(li);
+      });
+    } catch (e) {
+      console.error("Load error:", e);
+    }
   }
 
   loadStudents();
