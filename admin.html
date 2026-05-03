@@ -4,61 +4,31 @@
   <title>Admin Dashboard</title>
 
   <style>
-    body {
-      font-family: Arial;
-      background: #eef2f7;
-      padding: 20px;
-    }
-
-    h2 { text-align: center; }
+    body { font-family: Arial; background:#eef2f7; padding:20px; }
+    h2 { text-align:center; }
 
     .section {
-      background: white;
-      padding: 15px;
-      margin: 15px auto;
-      max-width: 1000px;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      background:white;
+      padding:15px;
+      margin:15px auto;
+      max-width:1000px;
+      border-radius:10px;
+      box-shadow:0 2px 10px rgba(0,0,0,0.1);
     }
 
-    input {
-      width: 100%;
-      padding: 8px;
-      margin: 5px 0;
-    }
+    input { width:100%; padding:8px; margin:5px 0; }
 
-    button {
-      width: 100%;
-      padding: 10px;
-      border: none;
-      cursor: pointer;
-      margin-top: 5px;
-    }
+    button { padding:8px; margin:3px; border:none; cursor:pointer; }
 
-    .add { background: #007bff; color: white; }
-    .update { background: green; color: white; }
+    .add { background:#007bff; color:white; }
+    .update { background:green; color:white; }
+    .delete { background:red; color:white; }
+    .edit { background:orange; color:white; }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-
-    th {
-      background: #007bff;
-      color: white;
-      padding: 10px;
-    }
-
-    td {
-      padding: 8px;
-      text-align: center;
-    }
-
-    tr:nth-child(even) { background: #f2f2f2; }
-
-    .delete { background: red; color: white; }
-    .edit { background: orange; color: white; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    th { background:#007bff; color:white; padding:10px; }
+    td { padding:8px; text-align:center; }
+    tr:nth-child(even){ background:#f2f2f2; }
   </style>
 </head>
 
@@ -66,7 +36,7 @@
 
 <h2>Admin Dashboard</h2>
 
-<!-- ================= STUDENTS ================= -->
+<!-- STUDENTS -->
 <div class="section">
   <h3>Students</h3>
 
@@ -77,8 +47,8 @@
   <input id="grade" placeholder="Grade">
   <input id="className" placeholder="Class">
 
-  <button class="add" onclick="addStudent()">Add Student</button>
-  <button class="update" onclick="updateStudent()">Update Student</button>
+  <button class="add" onclick="addStudent()">Add</button>
+  <button class="update" onclick="updateStudent()">Update</button>
 
   <table>
     <thead>
@@ -90,7 +60,7 @@
   </table>
 </div>
 
-<!-- ================= RESULTS ================= -->
+<!-- RESULTS -->
 <div class="section">
   <h3>Results</h3>
 
@@ -99,7 +69,8 @@
   <input id="term" placeholder="Term">
   <input id="mark" placeholder="Mark">
 
-  <button class="add" onclick="addResult()">Add Result</button>
+  <button class="add" onclick="addResult()">Add</button>
+  <button class="update" onclick="updateResult()">Update</button>
 
   <table>
     <thead>
@@ -111,7 +82,7 @@
   </table>
 </div>
 
-<!-- ================= FEES ================= -->
+<!-- FEES -->
 <div class="section">
   <h3>Fees</h3>
 
@@ -119,7 +90,8 @@
   <input id="total" placeholder="Total Fees">
   <input id="paid" placeholder="Paid">
 
-  <button class="add" onclick="addFees()">Add Fees</button>
+  <button class="add" onclick="addFees()">Add</button>
+  <button class="update" onclick="updateFees()">Update</button>
 
   <table>
     <thead>
@@ -135,13 +107,8 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  doc,
-  updateDoc
+  getFirestore, collection, addDoc, getDocs,
+  deleteDoc, doc, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -156,152 +123,194 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let editId = null;
+/* IDs */
+let sEdit=null, rEdit=null, fEdit=null;
 
-/* ================= STUDENTS ================= */
-window.addStudent = async function () {
-
-  await addDoc(collection(db, "students"), {
-    name: name.value,
-    studentId: studentId.value,
-    password: password.value,
-    age: age.value,
-    grade: grade.value,
-    class: className.value
+/* ========= STUDENTS ========= */
+window.addStudent = async ()=>{
+  await addDoc(collection(db,"students"),{
+    name:document.getElementById("name").value,
+    studentId:document.getElementById("studentId").value,
+    password:document.getElementById("password").value,
+    age:document.getElementById("age").value,
+    grade:document.getElementById("grade").value,
+    class:document.getElementById("className").value
   });
-
-  alert("Student added");
+  alert("Student Added");
   loadStudents();
 };
 
-/* ================= LOAD STUDENTS ================= */
-async function loadStudents() {
-  studentTable.innerHTML = "";
-
-  const snap = await getDocs(collection(db, "students"));
-
-  snap.forEach(d => {
-    const s = d.data();
-
-    studentTable.innerHTML += `
-      <tr>
-        <td>${s.name}</td>
-        <td>${s.studentId}</td>
-        <td>${s.age}</td>
-        <td>${s.grade}</td>
-        <td>${s.class}</td>
-        <td>
-          <button class="edit" onclick="editStudent('${d.id}','${s.name}','${s.studentId}','${s.password}','${s.age}','${s.grade}','${s.class}')">Edit</button>
-          <button class="delete" onclick="deleteStudent('${d.id}')">Delete</button>
-        </td>
-      </tr>
-    `;
-  });
-}
-
-/* ================= EDIT ================= */
-window.editStudent = function(id, n, sid, p, a, g, c) {
-  editId = id;
-  name.value = n;
-  studentId.value = sid;
-  password.value = p;
-  age.value = a;
-  grade.value = g;
-  className.value = c;
+window.editStudent=(id,n,i,p,a,g,c)=>{
+  sEdit=id;
+  document.getElementById("name").value=n;
+  document.getElementById("studentId").value=i;
+  document.getElementById("password").value=p;
+  document.getElementById("age").value=a;
+  document.getElementById("grade").value=g;
+  document.getElementById("className").value=c;
 };
 
-/* ================= UPDATE ================= */
-window.updateStudent = async function () {
+window.updateStudent=async()=>{
+  if(!sEdit) return alert("Select student first");
 
-  if (!editId) return alert("Select student first");
-
-  await updateDoc(doc(db, "students", editId), {
-    name: name.value,
-    studentId: studentId.value,
-    password: password.value,
-    age: age.value,
-    grade: grade.value,
-    class: className.value
+  await updateDoc(doc(db,"students",sEdit),{
+    name:document.getElementById("name").value,
+    studentId:document.getElementById("studentId").value,
+    password:document.getElementById("password").value,
+    age:document.getElementById("age").value,
+    grade:document.getElementById("grade").value,
+    class:document.getElementById("className").value
   });
 
   alert("Updated");
-  editId = null;
+  sEdit=null;
   loadStudents();
 };
 
-/* ================= DELETE ================= */
-window.deleteStudent = async function(id) {
-  await deleteDoc(doc(db, "students", id));
+window.deleteStudent=async(id)=>{
+  await deleteDoc(doc(db,"students",id));
   loadStudents();
 };
 
-/* ================= RESULTS ================= */
-window.addResult = async function () {
-  await addDoc(collection(db, "results"), {
-    studentId: r_studentId.value,
-    subject: subject.value,
-    term: term.value,
-    mark: mark.value
-  });
-
-  alert("Result added");
-  loadResults();
-};
-
-async function loadResults() {
-  resultsTable.innerHTML = "";
-
-  const snap = await getDocs(collection(db, "results"));
-
-  snap.forEach(d => {
-    const r = d.data();
-
-    resultsTable.innerHTML += `
-      <tr>
-        <td>${r.studentId}</td>
-        <td>${r.subject}</td>
-        <td>${r.term}</td>
-        <td>${r.mark}</td>
-        <td>OK</td>
-      </tr>
-    `;
+async function loadStudents(){
+  const table=document.getElementById("studentTable");
+  table.innerHTML="";
+  const snap=await getDocs(collection(db,"students"));
+  snap.forEach(d=>{
+    const s=d.data();
+    table.innerHTML+=`
+    <tr>
+      <td>${s.name}</td><td>${s.studentId}</td>
+      <td>${s.age}</td><td>${s.grade}</td><td>${s.class}</td>
+      <td>
+        <button class="edit" onclick="editStudent('${d.id}','${s.name}','${s.studentId}','${s.password}','${s.age}','${s.grade}','${s.class}')">Edit</button>
+        <button class="delete" onclick="deleteStudent('${d.id}')">Delete</button>
+      </td>
+    </tr>`;
   });
 }
 
-/* ================= FEES ================= */
-window.addFees = async function () {
+/* ========= RESULTS ========= */
+window.addResult=async()=>{
+  await addDoc(collection(db,"results"),{
+    studentId:document.getElementById("r_studentId").value,
+    subject:document.getElementById("subject").value,
+    term:document.getElementById("term").value,
+    mark:document.getElementById("mark").value
+  });
+  alert("Result Added");
+  loadResults();
+};
 
-  const totalVal = Number(total.value);
-  const paidVal = Number(paid.value);
+window.editResult=(id,i,s,t,m)=>{
+  rEdit=id;
+  document.getElementById("r_studentId").value=i;
+  document.getElementById("subject").value=s;
+  document.getElementById("term").value=t;
+  document.getElementById("mark").value=m;
+};
 
-  await addDoc(collection(db, "fees"), {
-    studentId: f_studentId.value,
-    totalFees: totalVal,
-    amountPaid: paidVal,
-    balance: totalVal - paidVal
+window.updateResult=async()=>{
+  if(!rEdit) return alert("Select result first");
+
+  await updateDoc(doc(db,"results",rEdit),{
+    studentId:document.getElementById("r_studentId").value,
+    subject:document.getElementById("subject").value,
+    term:document.getElementById("term").value,
+    mark:document.getElementById("mark").value
   });
 
-  alert("Fees added");
+  alert("Updated");
+  rEdit=null;
+  loadResults();
+};
+
+window.deleteResult=async(id)=>{
+  await deleteDoc(doc(db,"results",id));
+  loadResults();
+};
+
+async function loadResults(){
+  const table=document.getElementById("resultsTable");
+  table.innerHTML="";
+  const snap=await getDocs(collection(db,"results"));
+  snap.forEach(d=>{
+    const r=d.data();
+    table.innerHTML+=`
+    <tr>
+      <td>${r.studentId}</td><td>${r.subject}</td>
+      <td>${r.term}</td><td>${r.mark}</td>
+      <td>
+        <button class="edit" onclick="editResult('${d.id}','${r.studentId}','${r.subject}','${r.term}','${r.mark}')">Edit</button>
+        <button class="delete" onclick="deleteResult('${d.id}')">Delete</button>
+      </td>
+    </tr>`;
+  });
+}
+
+/* ========= FEES ========= */
+window.addFees=async()=>{
+  let totalVal=Number(document.getElementById("total").value);
+  let paidVal=Number(document.getElementById("paid").value);
+
+  await addDoc(collection(db,"fees"),{
+    studentId:document.getElementById("f_studentId").value,
+    totalFees:totalVal,
+    amountPaid:paidVal,
+    balance:totalVal-paidVal
+  });
+
+  alert("Fees Added");
   loadFees();
 };
 
-async function loadFees() {
-  feesTable.innerHTML = "";
+window.editFees=(id,i,t,p)=>{
+  fEdit=id;
+  document.getElementById("f_studentId").value=i;
+  document.getElementById("total").value=t;
+  document.getElementById("paid").value=p;
+};
 
-  const snap = await getDocs(collection(db, "fees"));
+window.updateFees=async()=>{
+  if(!fEdit) return alert("Select fees first");
 
-  snap.forEach(d => {
-    const f = d.data();
+  let totalVal=Number(document.getElementById("total").value);
+  let paidVal=Number(document.getElementById("paid").value);
 
-    feesTable.innerHTML += `
-      <tr>
-        <td>${f.studentId}</td>
-        <td>${f.totalFees}</td>
-        <td>${f.amountPaid}</td>
-        <td>${f.balance}</td>
-        <td>OK</td>
-      </tr>
-    `;
+  await updateDoc(doc(db,"fees",fEdit),{
+    studentId:document.getElementById("f_studentId").value,
+    totalFees:totalVal,
+    amountPaid:paidVal,
+    balance:totalVal-paidVal
+  });
+
+  alert("Updated");
+  fEdit=null;
+  loadFees();
+};
+
+window.deleteFees=async(id)=>{
+  await deleteDoc(doc(db,"fees",id));
+  loadFees();
+};
+
+async function loadFees(){
+  const table=document.getElementById("feesTable");
+  table.innerHTML="";
+  const snap=await getDocs(collection(db,"fees"));
+  snap.forEach(d=>{
+    const f=d.data();
+    table.innerHTML+=`
+    <tr>
+      <td>${f.studentId}</td>
+      <td>${f.totalFees}</td>
+      <td>${f.amountPaid}</td>
+      <td>${f.balance}</td>
+      <td>
+        <button class="edit" onclick="editFees('${d.id}','${f.studentId}','${f.totalFees}','${f.amountPaid}')">Edit</button>
+        <button class="delete" onclick="deleteFees('${d.id}')">Delete</button>
+      </td>
+    </tr>`;
   });
 }
 
