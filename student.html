@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Student Login</title>
+</head>
+<body>
+
+<h2>Student Portal Login</h2>
+
+<input id="studentId" placeholder="Student ID"><br><br>
+<input id="password" type="password" placeholder="Password"><br><br>
+
+<button onclick="login()">Login</button>
+
+<p id="msg"></p>
+
+<hr>
+
+<div id="dashboard" style="display:none;">
+  <h3>My Results</h3>
+  <ul id="myResults"></ul>
+
+  <h3>My Fees</h3>
+  <ul id="myFees"></ul>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
+  authDomain: "school-system-748cf.firebaseapp.com",
+  projectId: "school-system-748cf",
+  storageBucket: "school-system-748cf.firebasestorage.app",
+  messagingSenderId: "899412742738",
+  appId: "1:899412742738:web:7dc83a50b53789b196858b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let currentStudent = null;
+
+// ================= LOGIN =================
+window.login = async function () {
+  const id = document.getElementById("studentId").value;
+  const pass = document.getElementById("password").value;
+  const msg = document.getElementById("msg");
+
+  const snapshot = await getDocs(collection(db, "students"));
+
+  let found = false;
+
+  snapshot.forEach((doc) => {
+    const s = doc.data();
+
+    if (s.studentId === id && s.password === pass) {
+      currentStudent = s;
+      found = true;
+    }
+  });
+
+  if (found) {
+    msg.innerText = "Login successful";
+    document.getElementById("dashboard").style.display = "block";
+    loadMyData();
+  } else {
+    msg.innerText = "Invalid ID or password";
+  }
+};
+
+// ================= LOAD STUDENT DATA =================
+async function loadMyData() {
+  const myResults = document.getElementById("myResults");
+  const myFees = document.getElementById("myFees");
+
+  myResults.innerHTML = "";
+  myFees.innerHTML = "";
+
+  // RESULTS
+  const resultsSnap = await getDocs(collection(db, "results"));
+
+  resultsSnap.forEach((doc) => {
+    const r = doc.data();
+
+    if (r.studentName === currentStudent.name) {
+      const li = document.createElement("li");
+      li.textContent = r.subject + " | Term " + r.term + " | " + r.mark;
+      myResults.appendChild(li);
+    }
+  });
+
+  // FEES
+  const feesSnap = await getDocs(collection(db, "fees"));
+
+  feesSnap.forEach((doc) => {
+    const f = doc.data();
+
+    if (f.studentName === currentStudent.name) {
+      const li = document.createElement("li");
+      li.textContent =
+        "Total: " + f.totalFees +
+        " Paid: " + f.amountPaid +
+        " Balance: " + f.balance;
+
+      myFees.appendChild(li);
+    }
+  });
+}
+</script>
+
+</body>
+</html>
