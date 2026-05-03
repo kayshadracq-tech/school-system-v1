@@ -125,6 +125,20 @@ const db = getFirestore(app);
 
 let sEdit=null, rEdit=null, fEdit=null;
 
+/* ================= COMMON CHECK ================= */
+async function studentExists(id){
+  const snap = await getDocs(collection(db,"students"));
+  let found = false;
+
+  snap.forEach(d=>{
+    if(d.data().studentId === id){
+      found = true;
+    }
+  });
+
+  return found;
+}
+
 /* ================= STUDENTS ================= */
 document.getElementById("addStudentBtn").onclick = async ()=>{
 
@@ -135,28 +149,18 @@ document.getElementById("addStudentBtn").onclick = async ()=>{
     return;
   }
 
-  // 🔴 DUPLICATE CHECK
-  const snap = await getDocs(collection(db,"students"));
-  let exists = false;
-
-  snap.forEach(d=>{
-    if(d.data().studentId === id){
-      exists = true;
-    }
-  });
-
-  if(exists){
-    alert("Student ID already exists! Cannot save.");
+  if(await studentExists(id)){
+    alert("Student ID already exists!");
     return;
   }
 
   await addDoc(collection(db,"students"),{
-    name:document.getElementById("name").value,
+    name:name.value,
     studentId:id,
-    password:document.getElementById("password").value,
-    age:document.getElementById("age").value,
-    grade:document.getElementById("grade").value,
-    class:document.getElementById("className").value
+    password:password.value,
+    age:age.value,
+    grade:grade.value,
+    class:className.value
   });
 
   alert("Student added");
@@ -167,12 +171,12 @@ document.getElementById("updateStudentBtn").onclick = async ()=>{
   if(!sEdit) return alert("Select student first");
 
   await updateDoc(doc(db,"students",sEdit),{
-    name:document.getElementById("name").value,
-    studentId:document.getElementById("studentId").value,
-    password:document.getElementById("password").value,
-    age:document.getElementById("age").value,
-    grade:document.getElementById("grade").value,
-    class:document.getElementById("className").value
+    name:name.value,
+    studentId:studentId.value,
+    password:password.value,
+    age:age.value,
+    grade:grade.value,
+    class:className.value
   });
 
   alert("Updated");
@@ -181,7 +185,7 @@ document.getElementById("updateStudentBtn").onclick = async ()=>{
 };
 
 async function loadStudents(){
-  const table=document.getElementById("studentTable");
+  const table=studentTable;
   table.innerHTML="";
 
   const snap=await getDocs(collection(db,"students"));
@@ -198,63 +202,115 @@ async function loadStudents(){
       <td></td>
     `;
 
-    const actionCell=row.children[5];
+    const action=row.children[5];
 
-    const editBtn=document.createElement("button");
-    editBtn.textContent="Edit";
-    editBtn.className="edit";
-    editBtn.onclick=()=>{
+    const edit=document.createElement("button");
+    edit.textContent="Edit";
+    edit.className="edit";
+    edit.onclick=()=>{
       sEdit=d.id;
-      document.getElementById("name").value=s.name;
-      document.getElementById("studentId").value=s.studentId;
-      document.getElementById("password").value=s.password;
-      document.getElementById("age").value=s.age;
-      document.getElementById("grade").value=s.grade;
-      document.getElementById("className").value=s.class;
+      name.value=s.name;
+      studentId.value=s.studentId;
+      password.value=s.password;
+      age.value=s.age;
+      grade.value=s.grade;
+      className.value=s.class;
     };
 
-    const delBtn=document.createElement("button");
-    delBtn.textContent="Delete";
-    delBtn.className="delete";
-    delBtn.onclick=async()=>{
+    const del=document.createElement("button");
+    del.textContent="Delete";
+    del.className="delete";
+    del.onclick=async()=>{
       await deleteDoc(doc(db,"students",d.id));
       loadStudents();
     };
 
-    actionCell.appendChild(editBtn);
-    actionCell.appendChild(delBtn);
+    action.appendChild(edit);
+    action.appendChild(del);
 
     table.appendChild(row);
   });
 }
 
-/* ================= RESULTS ================= */
+/* ================= RESULTS (FIXED DUPLICATE CHECK) ================= */
 document.getElementById("addResultBtn").onclick = async ()=>{
+
+  const id = r_studentId.value;
+
+  if(!(await studentExists(id))){
+    alert("Student does not exist!");
+    return;
+  }
+
+  // ❗ PREVENT DUPLICATE RESULT (same student + subject + term)
+  const snap = await getDocs(collection(db,"results"));
+  let exists = false;
+
+  snap.forEach(d=>{
+    const r = d.data();
+    if(r.studentId === id &&
+       r.subject === subject.value &&
+       r.term === term.value){
+      exists = true;
+    }
+  });
+
+  if(exists){
+    alert("Result already exists for this student/subject/term!");
+    return;
+  }
+
   await addDoc(collection(db,"results"),{
-    studentId:document.getElementById("r_studentId").value,
-    subject:document.getElementById("subject").value,
-    term:document.getElementById("term").value,
-    mark:document.getElementById("mark").value
+    studentId:id,
+    subject:subject.value,
+    term:term.value,
+    mark:mark.value
   });
+
   loadResults();
 };
 
-document.getElementById("updateResultBtn").onclick = async ()=>{
-  if(!rEdit) return alert("Select result");
+/* ================= FEES (FIXED DUPLICATE CHECK) ================= */
+document.getElementById("addFeesBtn").onclick = async ()=>{
 
-  await updateDoc(doc(db,"results",rEdit),{
-    studentId:document.getElementById("r_studentId").value,
-    subject:document.getElementById("subject").value,
-    term:document.getElementById("term").value,
-    mark:document.getElementById("mark").value
+  const id = f_studentId.value;
+
+  if(!(await studentExists(id))){
+    alert("Student does not exist!");
+    return;
+  }
+
+  // ❗ PREVENT DUPLICATE FEES ENTRY
+  const snap = await getDocs(collection(db,"fees"));
+  let exists = false;
+
+  snap.forEach(d=>{
+    if(d.data().studentId === id){
+      exists = true;
+    }
   });
 
-  rEdit=null;
-  loadResults();
+  if(exists){
+    alert("Fees already recorded for this student!");
+    return;
+  }
+
+  let totalVal=Number(total.value);
+  let paidVal=Number(paid.value);
+
+  await addDoc(collection(db,"fees"),{
+    studentId:id,
+    totalFees:totalVal,
+    amountPaid:paidVal,
+    balance:totalVal-paidVal
+  });
+
+  loadFees();
 };
 
+/* ================= LOAD RESULTS ================= */
 async function loadResults(){
-  const table=document.getElementById("resultsTable");
+  const table=resultsTable;
   table.innerHTML="";
 
   const snap=await getDocs(collection(db,"results"));
@@ -272,17 +328,6 @@ async function loadResults(){
 
     const action=row.children[4];
 
-    const edit=document.createElement("button");
-    edit.textContent="Edit";
-    edit.className="edit";
-    edit.onclick=()=>{
-      rEdit=d.id;
-      document.getElementById("r_studentId").value=r.studentId;
-      document.getElementById("subject").value=r.subject;
-      document.getElementById("term").value=r.term;
-      document.getElementById("mark").value=r.mark;
-    };
-
     const del=document.createElement("button");
     del.textContent="Delete";
     del.className="delete";
@@ -291,47 +336,14 @@ async function loadResults(){
       loadResults();
     };
 
-    action.appendChild(edit);
     action.appendChild(del);
-
     table.appendChild(row);
   });
 }
 
-/* ================= FEES ================= */
-document.getElementById("addFeesBtn").onclick = async ()=>{
-  let totalVal=Number(document.getElementById("total").value);
-  let paidVal=Number(document.getElementById("paid").value);
-
-  await addDoc(collection(db,"fees"),{
-    studentId:document.getElementById("f_studentId").value,
-    totalFees:totalVal,
-    amountPaid:paidVal,
-    balance:totalVal-paidVal
-  });
-
-  loadFees();
-};
-
-document.getElementById("updateFeesBtn").onclick = async ()=>{
-  if(!fEdit) return alert("Select fees");
-
-  let totalVal=Number(document.getElementById("total").value);
-  let paidVal=Number(document.getElementById("paid").value);
-
-  await updateDoc(doc(db,"fees",fEdit),{
-    studentId:document.getElementById("f_studentId").value,
-    totalFees:totalVal,
-    amountPaid:paidVal,
-    balance:totalVal-paidVal
-  });
-
-  fEdit=null;
-  loadFees();
-};
-
+/* ================= LOAD FEES ================= */
 async function loadFees(){
-  const table=document.getElementById("feesTable");
+  const table=feesTable;
   table.innerHTML="";
 
   const snap=await getDocs(collection(db,"fees"));
@@ -349,16 +361,6 @@ async function loadFees(){
 
     const action=row.children[4];
 
-    const edit=document.createElement("button");
-    edit.textContent="Edit";
-    edit.className="edit";
-    edit.onclick=()=>{
-      fEdit=d.id;
-      document.getElementById("f_studentId").value=f.studentId;
-      document.getElementById("total").value=f.totalFees;
-      document.getElementById("paid").value=f.amountPaid;
-    };
-
     const del=document.createElement("button");
     del.textContent="Delete";
     del.className="delete";
@@ -367,9 +369,7 @@ async function loadFees(){
       loadFees();
     };
 
-    action.appendChild(edit);
     action.appendChild(del);
-
     table.appendChild(row);
   });
 }
