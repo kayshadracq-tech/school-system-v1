@@ -7,13 +7,11 @@
 
 <h2>Admin Dashboard</h2>
 
-<!-- NAVIGATION -->
 <a href="index.html">Home</a> |
 <a href="student.html">Student Portal</a>
 
 <hr>
 
-<!-- ================= STUDENTS ================= -->
 <h3>Add Student</h3>
 
 <input id="name" placeholder="Student name"><br><br>
@@ -31,7 +29,7 @@
 
 <h3>Results</h3>
 
-<input id="r_name" placeholder="Student name"><br><br>
+<input id="r_studentId" placeholder="Student ID"><br><br>
 <input id="subject" placeholder="Subject"><br><br>
 <input id="term" placeholder="Term"><br><br>
 <input id="mark" placeholder="Mark"><br><br>
@@ -44,7 +42,7 @@
 
 <h3>Fees</h3>
 
-<input id="f_name" placeholder="Student name"><br><br>
+<input id="f_studentId" placeholder="Student ID"><br><br>
 <input id="total" placeholder="Total fees"><br><br>
 <input id="paid" placeholder="Paid"><br><br>
 
@@ -73,99 +71,46 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const studentList = document.getElementById("studentList");
-const resultsList = document.getElementById("resultsList");
-const feesList = document.getElementById("feesList");
-
 // STUDENTS
 window.addStudent = async function () {
-  const name = document.getElementById("name").value;
-  const studentId = document.getElementById("studentId").value;
-  const password = document.getElementById("password").value;
-  const age = document.getElementById("age").value;
-  const grade = document.getElementById("grade").value;
-  const studentClass = document.getElementById("class").value;
-
   await addDoc(collection(db, "students"), {
-    name, studentId, password, age, grade, class: studentClass
+    name: name.value,
+    studentId: studentId.value,
+    password: password.value,
+    age: age.value,
+    grade: grade.value,
+    class: class.value
   });
 
-  loadStudents();
+  alert("Student added");
 };
-
-async function loadStudents() {
-  studentList.innerHTML = "";
-  const snap = await getDocs(collection(db, "students"));
-
-  snap.forEach(doc => {
-    const s = doc.data();
-    const li = document.createElement("li");
-    li.textContent = s.name + " (" + s.studentId + ")";
-    studentList.appendChild(li);
-  });
-}
 
 // RESULTS
 window.addResult = async function () {
-  const name = document.getElementById("r_name").value;
-  const subject = document.getElementById("subject").value;
-  const term = document.getElementById("term").value;
-  const mark = document.getElementById("mark").value;
-
   await addDoc(collection(db, "results"), {
-    studentName: name,
-    subject,
-    term,
-    mark
+    studentId: r_studentId.value,
+    subject: subject.value,
+    term: term.value,
+    mark: mark.value
   });
 
-  loadResults();
+  alert("Result added");
 };
-
-async function loadResults() {
-  resultsList.innerHTML = "";
-  const snap = await getDocs(collection(db, "results"));
-
-  snap.forEach(doc => {
-    const r = doc.data();
-    const li = document.createElement("li");
-    li.textContent = r.studentName + " - " + r.subject + " - " + r.mark;
-    resultsList.appendChild(li);
-  });
-}
 
 // FEES
 window.addFees = async function () {
-  const name = document.getElementById("f_name").value;
-  const total = Number(document.getElementById("total").value);
-  const paid = Number(document.getElementById("paid").value);
+  const totalVal = Number(total.value);
+  const paidVal = Number(paid.value);
 
   await addDoc(collection(db, "fees"), {
-    studentName: name,
-    totalFees: total,
-    amountPaid: paid,
-    balance: total - paid
+    studentId: f_studentId.value,
+    totalFees: totalVal,
+    amountPaid: paidVal,
+    balance: totalVal - paidVal
   });
 
-  loadFees();
+  alert("Fees added");
 };
-
-async function loadFees() {
-  feesList.innerHTML = "";
-  const snap = await getDocs(collection(db, "fees"));
-
-  snap.forEach(doc => {
-    const f = doc.data();
-    const li = document.createElement("li");
-    li.textContent = f.studentName + " Balance: " + f.balance;
-    feesList.appendChild(li);
-  });
-}
-
-loadStudents();
-loadResults();
-loadFees();
-
 </script>
 
 </body>
