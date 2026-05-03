@@ -36,7 +36,7 @@
 
 <h2>Admin Dashboard</h2>
 
-<!-- STUDENTS -->
+<!-- ================= STUDENTS ================= -->
 <div class="section">
   <h3>Students</h3>
 
@@ -60,7 +60,7 @@
   </table>
 </div>
 
-<!-- RESULTS -->
+<!-- ================= RESULTS ================= -->
 <div class="section">
   <h3>Results</h3>
 
@@ -70,7 +70,6 @@
   <input id="mark" placeholder="Mark">
 
   <button id="addResultBtn" class="add">Add</button>
-  <button id="updateResultBtn" class="update">Update</button>
 
   <table>
     <thead>
@@ -82,7 +81,7 @@
   </table>
 </div>
 
-<!-- FEES -->
+<!-- ================= FEES ================= -->
 <div class="section">
   <h3>Fees</h3>
 
@@ -91,7 +90,6 @@
   <input id="paid" placeholder="Paid">
 
   <button id="addFeesBtn" class="add">Add</button>
-  <button id="updateFeesBtn" class="update">Update</button>
 
   <table>
     <thead>
@@ -113,7 +111,9 @@ import {
   getDocs,
   deleteDoc,
   doc,
-  updateDoc
+  updateDoc,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -128,29 +128,23 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let sEdit = null;
-let rEdit = null;
-let fEdit = null;
+let editStudentId = null;
 
-/* ================= HELPERS ================= */
-async function exists(collectionName, field, value) {
-  const snap = await getDocs(collection(db, collectionName));
-  let found = false;
-
-  snap.forEach(d => {
-    if (d.data()[field] === value) found = true;
-  });
-
-  return found;
+/* ================= CHECK STUDENT ================= */
+async function studentExists(id) {
+  const q = query(collection(db, "students"), where("studentId", "==", String(id)));
+  const snap = await getDocs(q);
+  return !snap.empty;
 }
 
-/* ================= STUDENTS ================= */
+/* ================= ADD STUDENT ================= */
 document.getElementById("addStudentBtn").onclick = async () => {
-  const id = studentId.value;
+
+  const id = studentId.value.trim();
 
   if (!id) return alert("Student ID required");
 
-  if (await exists("students", "studentId", id)) {
+  if (await studentExists(id)) {
     return alert("Student ID already exists!");
   }
 
@@ -167,10 +161,11 @@ document.getElementById("addStudentBtn").onclick = async () => {
   loadStudents();
 };
 
+/* ================= UPDATE STUDENT ================= */
 document.getElementById("updateStudentBtn").onclick = async () => {
-  if (!sEdit) return alert("Select student first");
+  if (!editStudentId) return alert("Select student first");
 
-  await updateDoc(doc(db, "students", sEdit), {
+  await updateDoc(doc(db, "students", editStudentId), {
     name: name.value,
     studentId: studentId.value,
     password: password.value,
@@ -179,10 +174,11 @@ document.getElementById("updateStudentBtn").onclick = async () => {
     class: className.value
   });
 
-  sEdit = null;
+  editStudentId = null;
   loadStudents();
 };
 
+/* ================= LOAD STUDENTS ================= */
 async function loadStudents() {
   const table = studentTable;
   table.innerHTML = "";
@@ -208,7 +204,7 @@ async function loadStudents() {
     edit.textContent = "Edit";
     edit.className = "edit";
     edit.onclick = () => {
-      sEdit = d.id;
+      editStudentId = d.id;
       name.value = s.name;
       studentId.value = s.studentId;
       password.value = s.password;
@@ -236,41 +232,22 @@ async function loadStudents() {
 document.getElementById("addResultBtn").onclick = async () => {
 
   const id = r_studentId.value;
-  const key = id + subject.value + term.value;
 
-  if (!(await exists("students", "studentId", id))) {
+  if (!(await studentExists(id))) {
     return alert("Student does not exist!");
-  }
-
-  if (await exists("results", "key", key)) {
-    return alert("Result already exists for this term & subject!");
   }
 
   await addDoc(collection(db, "results"), {
     studentId: id,
     subject: subject.value,
     term: term.value,
-    mark: mark.value,
-    key: key
-  });
-
-  loadResults();
-};
-
-document.getElementById("updateResultBtn").onclick = async () => {
-  if (!rEdit) return alert("Select result");
-
-  await updateDoc(doc(db, "results", rEdit), {
-    studentId: r_studentId.value,
-    subject: subject.value,
-    term: term.value,
     mark: mark.value
   });
 
-  rEdit = null;
   loadResults();
 };
 
+/* ================= LOAD RESULTS ================= */
 async function loadResults() {
   const table = resultsTable;
   table.innerHTML = "";
@@ -291,17 +268,6 @@ async function loadResults() {
 
     const action = row.children[4];
 
-    const edit = document.createElement("button");
-    edit.textContent = "Edit";
-    edit.className = "edit";
-    edit.onclick = () => {
-      rEdit = d.id;
-      r_studentId.value = r.studentId;
-      subject.value = r.subject;
-      term.value = r.term;
-      mark.value = r.mark;
-    };
-
     const del = document.createElement("button");
     del.textContent = "Delete";
     del.className = "delete";
@@ -310,9 +276,7 @@ async function loadResults() {
       loadResults();
     };
 
-    action.appendChild(edit);
     action.appendChild(del);
-
     table.appendChild(row);
   });
 }
@@ -322,16 +286,12 @@ document.getElementById("addFeesBtn").onclick = async () => {
 
   const id = f_studentId.value;
 
-  if (!(await exists("students", "studentId", id))) {
+  if (!(await studentExists(id))) {
     return alert("Student does not exist!");
   }
 
-  if (await exists("fees", "studentId", id)) {
-    return alert("Fees already recorded for this student!");
-  }
-
-  let totalVal = Number(total.value);
-  let paidVal = Number(paid.value);
+  const totalVal = Number(total.value);
+  const paidVal = Number(paid.value);
 
   await addDoc(collection(db, "fees"), {
     studentId: id,
@@ -343,23 +303,7 @@ document.getElementById("addFeesBtn").onclick = async () => {
   loadFees();
 };
 
-document.getElementById("updateFeesBtn").onclick = async () => {
-  if (!fEdit) return alert("Select fees");
-
-  let totalVal = Number(total.value);
-  let paidVal = Number(paid.value);
-
-  await updateDoc(doc(db, "fees", fEdit), {
-    studentId: f_studentId.value,
-    totalFees: totalVal,
-    amountPaid: paidVal,
-    balance: totalVal - paidVal
-  });
-
-  fEdit = null;
-  loadFees();
-};
-
+/* ================= LOAD FEES ================= */
 async function loadFees() {
   const table = feesTable;
   table.innerHTML = "";
@@ -380,16 +324,6 @@ async function loadFees() {
 
     const action = row.children[4];
 
-    const edit = document.createElement("button");
-    edit.textContent = "Edit";
-    edit.className = "edit";
-    edit.onclick = () => {
-      fEdit = d.id;
-      f_studentId.value = f.studentId;
-      total.value = f.totalFees;
-      paid.value = f.amountPaid;
-    };
-
     const del = document.createElement("button");
     del.textContent = "Delete";
     del.className = "delete";
@@ -398,9 +332,7 @@ async function loadFees() {
       loadFees();
     };
 
-    action.appendChild(edit);
     action.appendChild(del);
-
     table.appendChild(row);
   });
 }
