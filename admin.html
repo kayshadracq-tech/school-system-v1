@@ -2,98 +2,151 @@
 <html>
 <head>
   <title>Admin Dashboard</title>
-  <style>
-    body {
-      font-family: Arial;
-      background: #eef2f7;
-      padding: 20px;
-    }
-
-    h2 {
-      text-align: center;
-    }
-
-    .section {
-      background: white;
-      padding: 15px;
-      margin: 15px auto;
-      max-width: 500px;
-      border-radius: 12px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-    }
-
-    input {
-      width: 100%;
-      padding: 10px;
-      margin: 5px 0;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-
-    button {
-      width: 100%;
-      padding: 10px;
-      background: #28a745;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      margin-top: 10px;
-    }
-
-    button:hover {
-      background: #218838;
-    }
-
-    a {
-      margin-right: 10px;
-    }
-
-    ul {
-      padding-left: 20px;
-    }
-  </style>
 </head>
 <body>
 
 <h2>Admin Dashboard</h2>
 
+<!-- NAVIGATION -->
 <a href="index.html">Home</a> |
 <a href="student.html">Student Portal</a>
 
-<div class="section">
-  <h3>Add Student</h3>
-  <input id="name" placeholder="Name">
-  <input id="studentId" placeholder="Student ID">
-  <input id="password" type="password" placeholder="Password">
-  <input id="age" placeholder="Age">
-  <input id="grade" placeholder="Grade">
-  <input id="class" placeholder="Class">
-  <button onclick="addStudent()">Add Student</button>
-  <ul id="studentList"></ul>
-</div>
+<hr>
 
-<div class="section">
-  <h3>Add Result</h3>
-  <input id="r_studentId" placeholder="Student ID">
-  <input id="subject" placeholder="Subject">
-  <input id="term" placeholder="Term">
-  <input id="mark" placeholder="Mark">
-  <button onclick="addResult()">Add Result</button>
-  <ul id="resultsList"></ul>
-</div>
+<!-- ================= STUDENTS ================= -->
+<h3>Add Student</h3>
 
-<div class="section">
-  <h3>Add Fees</h3>
-  <input id="f_studentId" placeholder="Student ID">
-  <input id="total" placeholder="Total Fees">
-  <input id="paid" placeholder="Paid">
-  <button onclick="addFees()">Add Fees</button>
-  <ul id="feesList"></ul>
-</div>
+<input id="name" placeholder="Student name"><br><br>
+<input id="studentId" placeholder="Student ID"><br><br>
+<input id="password" type="password" placeholder="Password"><br><br>
+<input id="age" placeholder="Age"><br><br>
+<input id="grade" placeholder="Grade"><br><br>
+<input id="class" placeholder="Class"><br><br>
 
-<!-- KEEP YOUR FIREBASE SCRIPT EXACTLY SAME -->
+<button onclick="addStudent()">Add Student</button>
+
+<ul id="studentList"></ul>
+
+<hr>
+
+<!-- ================= RESULTS ================= -->
+<h3>Results</h3>
+
+<input id="r_studentId" placeholder="Student ID"><br><br>
+<input id="subject" placeholder="Subject"><br><br>
+<input id="term" placeholder="Term"><br><br>
+<input id="mark" placeholder="Mark"><br><br>
+
+<button onclick="addResult()">Add Result</button>
+
+<ul id="resultsList"></ul>
+
+<hr>
+
+<!-- ================= FEES ================= -->
+<h3>Fees</h3>
+
+<input id="f_studentId" placeholder="Student ID"><br><br>
+<input id="total" placeholder="Total fees"><br><br>
+<input id="paid" placeholder="Paid"><br><br>
+
+<button onclick="addFees()">Add Fees</button>
+
+<ul id="feesList"></ul>
+
 <script type="module">
-/* (your existing Firebase logic stays unchanged) */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
+  authDomain: "school-system-748cf.firebaseapp.com",
+  projectId: "school-system-748cf",
+  storageBucket: "school-system-748cf.firebasestorage.app",
+  messagingSenderId: "899412742738",
+  appId: "1:899412742738:web:7dc83a50b53789b196858b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* ================= STUDENT ================= */
+window.addStudent = async function () {
+  try {
+    const name = document.getElementById("name").value;
+    const studentId = document.getElementById("studentId").value;
+    const password = document.getElementById("password").value;
+    const age = document.getElementById("age").value;
+    const grade = document.getElementById("grade").value;
+    const studentClass = document.getElementById("class").value;
+
+    await addDoc(collection(db, "students"), {
+      name,
+      studentId,
+      password,
+      age,
+      grade,
+      class: studentClass
+    });
+
+    alert("Student saved successfully!");
+
+    // clear form
+    document.getElementById("name").value = "";
+    document.getElementById("studentId").value = "";
+    document.getElementById("password").value = "";
+    document.getElementById("age").value = "";
+    document.getElementById("grade").value = "";
+    document.getElementById("class").value = "";
+
+  } catch (error) {
+    console.error(error);
+    alert("Error saving student");
+  }
+};
+
+/* ================= RESULTS ================= */
+window.addResult = async function () {
+  try {
+    await addDoc(collection(db, "results"), {
+      studentId: document.getElementById("r_studentId").value,
+      subject: document.getElementById("subject").value,
+      term: document.getElementById("term").value,
+      mark: document.getElementById("mark").value
+    });
+
+    alert("Result saved successfully!");
+
+  } catch (error) {
+    console.error(error);
+    alert("Error saving result");
+  }
+};
+
+/* ================= FEES ================= */
+window.addFees = async function () {
+  try {
+    const totalVal = Number(document.getElementById("total").value);
+    const paidVal = Number(document.getElementById("paid").value);
+
+    await addDoc(collection(db, "fees"), {
+      studentId: document.getElementById("f_studentId").value,
+      totalFees: totalVal,
+      amountPaid: paidVal,
+      balance: totalVal - paidVal
+    });
+
+    alert("Fees saved successfully!");
+
+  } catch (error) {
+    console.error(error);
+    alert("Error saving fees");
+  }
+};
 </script>
 
 </body>
