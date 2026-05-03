@@ -54,7 +54,6 @@
       width: 100%;
       border-collapse: collapse;
       margin-top: 10px;
-      background: white;
     }
 
     th {
@@ -81,7 +80,7 @@
 <a href="index.html">Home</a> |
 <a href="student.html">Student Portal</a>
 
-<!-- ================= STUDENTS ================= -->
+<!-- STUDENTS -->
 <div class="section">
   <h3>Add Student</h3>
 
@@ -92,13 +91,13 @@
   <input id="grade" placeholder="Grade">
   <input id="class" placeholder="Class">
 
-  <button onclick="addStudent()">Add Student</button>
+  <button id="btnStudent">Add Student</button>
 
   <table>
     <thead>
       <tr>
         <th>Name</th>
-        <th>Student ID</th>
+        <th>ID</th>
         <th>Age</th>
         <th>Grade</th>
         <th>Class</th>
@@ -108,7 +107,7 @@
   </table>
 </div>
 
-<!-- ================= RESULTS ================= -->
+<!-- RESULTS -->
 <div class="section">
   <h3>Results</h3>
 
@@ -117,12 +116,12 @@
   <input id="term" placeholder="Term">
   <input id="mark" placeholder="Mark">
 
-  <button onclick="addResult()">Add Result</button>
+  <button id="btnResult">Add Result</button>
 
   <table>
     <thead>
       <tr>
-        <th>Student ID</th>
+        <th>ID</th>
         <th>Subject</th>
         <th>Term</th>
         <th>Mark</th>
@@ -132,7 +131,7 @@
   </table>
 </div>
 
-<!-- ================= FEES ================= -->
+<!-- FEES -->
 <div class="section">
   <h3>Fees</h3>
 
@@ -140,12 +139,12 @@
   <input id="total" placeholder="Total fees">
   <input id="paid" placeholder="Paid">
 
-  <button onclick="addFees()">Add Fees</button>
+  <button id="btnFees">Add Fees</button>
 
   <table>
     <thead>
       <tr>
-        <th>Student ID</th>
+        <th>ID</th>
         <th>Total</th>
         <th>Paid</th>
         <th>Balance</th>
@@ -177,65 +176,73 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+/* ================= FIXED BUTTON EVENTS ================= */
+
+document.getElementById("btnStudent").addEventListener("click", addStudent);
+document.getElementById("btnResult").addEventListener("click", addResult);
+document.getElementById("btnFees").addEventListener("click", addFees);
+
 /* ================= STUDENT ================= */
-window.addStudent = async function () {
+async function addStudent() {
 
   await addDoc(collection(db, "students"), {
-    name: name.value,
-    studentId: studentId.value,
-    password: password.value,
-    age: age.value,
-    grade: grade.value,
-    class: class.value
+    name: document.getElementById("name").value,
+    studentId: document.getElementById("studentId").value,
+    password: document.getElementById("password").value,
+    age: document.getElementById("age").value,
+    grade: document.getElementById("grade").value,
+    class: document.getElementById("class").value
   });
 
-  alert("Student added successfully!");
+  alert("Student added!");
 
   loadStudents();
-};
+}
 
 /* ================= RESULT ================= */
-window.addResult = async function () {
+async function addResult() {
 
   await addDoc(collection(db, "results"), {
-    studentId: r_studentId.value,
-    subject: subject.value,
-    term: term.value,
-    mark: mark.value
+    studentId: document.getElementById("r_studentId").value,
+    subject: document.getElementById("subject").value,
+    term: document.getElementById("term").value,
+    mark: document.getElementById("mark").value
   });
 
-  alert("Result added successfully!");
+  alert("Result added!");
 
   loadResults();
-};
+}
 
 /* ================= FEES ================= */
-window.addFees = async function () {
+async function addFees() {
 
-  const totalVal = Number(total.value);
-  const paidVal = Number(paid.value);
+  const totalVal = Number(document.getElementById("total").value);
+  const paidVal = Number(document.getElementById("paid").value);
 
   await addDoc(collection(db, "fees"), {
-    studentId: f_studentId.value,
+    studentId: document.getElementById("f_studentId").value,
     totalFees: totalVal,
     amountPaid: paidVal,
     balance: totalVal - paidVal
   });
 
-  alert("Fees added successfully!");
+  alert("Fees added!");
 
   loadFees();
-};
+}
 
 /* ================= LOAD TABLES ================= */
 
 async function loadStudents() {
-  studentTable.innerHTML = "";
+  const table = document.getElementById("studentTable");
+  table.innerHTML = "";
+
   const snap = await getDocs(collection(db, "students"));
 
   snap.forEach(doc => {
     const s = doc.data();
-    studentTable.innerHTML += `
+    table.innerHTML += `
       <tr>
         <td>${s.name}</td>
         <td>${s.studentId}</td>
@@ -248,12 +255,14 @@ async function loadStudents() {
 }
 
 async function loadResults() {
-  resultsTable.innerHTML = "";
+  const table = document.getElementById("resultsTable");
+  table.innerHTML = "";
+
   const snap = await getDocs(collection(db, "results"));
 
   snap.forEach(doc => {
     const r = doc.data();
-    resultsTable.innerHTML += `
+    table.innerHTML += `
       <tr>
         <td>${r.studentId}</td>
         <td>${r.subject}</td>
@@ -265,12 +274,14 @@ async function loadResults() {
 }
 
 async function loadFees() {
-  feesTable.innerHTML = "";
+  const table = document.getElementById("feesTable");
+  table.innerHTML = "";
+
   const snap = await getDocs(collection(db, "fees"));
 
   snap.forEach(doc => {
     const f = doc.data();
-    feesTable.innerHTML += `
+    table.innerHTML += `
       <tr>
         <td>${f.studentId}</td>
         <td>${f.totalFees}</td>
@@ -289,4 +300,4 @@ loadFees();
 </script>
 
 </body>
-</html>
+    </html>
