@@ -7,7 +7,6 @@
 
 <h2>Admin Dashboard</h2>
 
-<!-- NAVIGATION -->
 <a href="index.html">Home</a> |
 <a href="student.html">Student Portal</a>
 
@@ -55,6 +54,7 @@
 <ul id="feesList"></ul>
 
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getFirestore,
@@ -75,28 +75,35 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ================= STUDENT SAVE ================= */
+/* ================= STUDENT ================= */
 window.addStudent = async function () {
   try {
+    const name = document.getElementById("name").value;
+    const studentId = document.getElementById("studentId").value;
+    const password = document.getElementById("password").value;
+    const age = document.getElementById("age").value;
+    const grade = document.getElementById("grade").value;
+    const studentClass = document.getElementById("class").value;
+
     await addDoc(collection(db, "students"), {
-      name: name.value,
-      studentId: studentId.value,
-      password: password.value,
-      age: age.value,
-      grade: grade.value,
-      class: class.value
+      name,
+      studentId,
+      password,
+      age,
+      grade,
+      class: studentClass
     });
 
     alert("Student saved successfully!");
 
     loadStudents();
 
-    name.value = "";
-    studentId.value = "";
-    password.value = "";
-    age.value = "";
-    grade.value = "";
-    class.value = "";
+    document.getElementById("name").value = "";
+    document.getElementById("studentId").value = "";
+    document.getElementById("password").value = "";
+    document.getElementById("age").value = "";
+    document.getElementById("grade").value = "";
+    document.getElementById("class").value = "";
 
   } catch (error) {
     console.error(error);
@@ -104,18 +111,17 @@ window.addStudent = async function () {
   }
 };
 
-/* ================= RESULT SAVE ================= */
+/* ================= RESULT ================= */
 window.addResult = async function () {
   try {
     await addDoc(collection(db, "results"), {
-      studentId: r_studentId.value,
-      subject: subject.value,
-      term: term.value,
-      mark: mark.value
+      studentId: document.getElementById("r_studentId").value,
+      subject: document.getElementById("subject").value,
+      term: document.getElementById("term").value,
+      mark: document.getElementById("mark").value
     });
 
     alert("Result saved successfully!");
-
     loadResults();
 
   } catch (error) {
@@ -124,21 +130,20 @@ window.addResult = async function () {
   }
 };
 
-/* ================= FEES SAVE ================= */
+/* ================= FEES ================= */
 window.addFees = async function () {
   try {
-    const totalVal = Number(total.value);
-    const paidVal = Number(paid.value);
+    const totalVal = Number(document.getElementById("total").value);
+    const paidVal = Number(document.getElementById("paid").value);
 
     await addDoc(collection(db, "fees"), {
-      studentId: f_studentId.value,
+      studentId: document.getElementById("f_studentId").value,
       totalFees: totalVal,
       amountPaid: paidVal,
       balance: totalVal - paidVal
     });
 
     alert("Fees saved successfully!");
-
     loadFees();
 
   } catch (error) {
@@ -147,7 +152,7 @@ window.addFees = async function () {
   }
 };
 
-/* ================= LOAD DATA (NEW PART) ================= */
+/* ================= LOAD DATA ================= */
 
 async function loadStudents() {
   studentList.innerHTML = "";
@@ -185,7 +190,7 @@ async function loadFees() {
   });
 }
 
-/* RUN ON PAGE LOAD */
+/* RUN ON START */
 loadStudents();
 loadResults();
 loadFees();
