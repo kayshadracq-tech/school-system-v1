@@ -1,34 +1,63 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Student Login</title>
+  <title>Admin Dashboard</title>
 </head>
 <body>
 
-<h2>Student Portal Login</h2>
+<h2>Admin Dashboard</h2>
 
-<input id="studentId" placeholder="Student ID"><br><br>
-<input id="password" type="password" placeholder="Password"><br><br>
-
-<button onclick="login()">Login</button>
-
-<p id="msg"></p>
+<!-- NAVIGATION -->
+<a href="index.html">Home</a> |
+<a href="student.html">Student Portal</a>
 
 <hr>
 
-<div id="dashboard" style="display:none;">
-  <h3>My Results</h3>
-  <ul id="myResults"></ul>
+<!-- ================= STUDENTS ================= -->
+<h3>Add Student</h3>
 
-  <h3>My Fees</h3>
-  <ul id="myFees"></ul>
-</div>
+<input id="name" placeholder="Student name"><br><br>
+<input id="studentId" placeholder="Student ID"><br><br>
+<input id="password" type="password" placeholder="Password"><br><br>
+<input id="age" placeholder="Age"><br><br>
+<input id="grade" placeholder="Grade"><br><br>
+<input id="class" placeholder="Class"><br><br>
+
+<button onclick="addStudent()">Add Student</button>
+
+<ul id="studentList"></ul>
+
+<hr>
+
+<h3>Results</h3>
+
+<input id="r_name" placeholder="Student name"><br><br>
+<input id="subject" placeholder="Subject"><br><br>
+<input id="term" placeholder="Term"><br><br>
+<input id="mark" placeholder="Mark"><br><br>
+
+<button onclick="addResult()">Add Result</button>
+
+<ul id="resultsList"></ul>
+
+<hr>
+
+<h3>Fees</h3>
+
+<input id="f_name" placeholder="Student name"><br><br>
+<input id="total" placeholder="Total fees"><br><br>
+<input id="paid" placeholder="Paid"><br><br>
+
+<button onclick="addFees()">Add Fees</button>
+
+<ul id="feesList"></ul>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getFirestore,
   collection,
+  addDoc,
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -44,75 +73,100 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let currentStudent = null;
+const studentList = document.getElementById("studentList");
+const resultsList = document.getElementById("resultsList");
+const feesList = document.getElementById("feesList");
 
-// ================= LOGIN =================
-window.login = async function () {
-  const id = document.getElementById("studentId").value;
-  const pass = document.getElementById("password").value;
-  const msg = document.getElementById("msg");
+// STUDENTS
+window.addStudent = async function () {
+  const name = document.getElementById("name").value;
+  const studentId = document.getElementById("studentId").value;
+  const password = document.getElementById("password").value;
+  const age = document.getElementById("age").value;
+  const grade = document.getElementById("grade").value;
+  const studentClass = document.getElementById("class").value;
 
-  const snapshot = await getDocs(collection(db, "students"));
-
-  let found = false;
-
-  snapshot.forEach((doc) => {
-    const s = doc.data();
-
-    if (s.studentId === id && s.password === pass) {
-      currentStudent = s;
-      found = true;
-    }
+  await addDoc(collection(db, "students"), {
+    name, studentId, password, age, grade, class: studentClass
   });
 
-  if (found) {
-    msg.innerText = "Login successful";
-    document.getElementById("dashboard").style.display = "block";
-    loadMyData();
-  } else {
-    msg.innerText = "Invalid ID or password";
-  }
+  loadStudents();
 };
 
-// ================= LOAD STUDENT DATA =================
-async function loadMyData() {
-  const myResults = document.getElementById("myResults");
-  const myFees = document.getElementById("myFees");
+async function loadStudents() {
+  studentList.innerHTML = "";
+  const snap = await getDocs(collection(db, "students"));
 
-  myResults.innerHTML = "";
-  myFees.innerHTML = "";
-
-  // RESULTS
-  const resultsSnap = await getDocs(collection(db, "results"));
-
-  resultsSnap.forEach((doc) => {
-    const r = doc.data();
-
-    if (r.studentName === currentStudent.name) {
-      const li = document.createElement("li");
-      li.textContent = r.subject + " | Term " + r.term + " | " + r.mark;
-      myResults.appendChild(li);
-    }
-  });
-
-  // FEES
-  const feesSnap = await getDocs(collection(db, "fees"));
-
-  feesSnap.forEach((doc) => {
-    const f = doc.data();
-
-    if (f.studentName === currentStudent.name) {
-      const li = document.createElement("li");
-      li.textContent =
-        "Total: " + f.totalFees +
-        " Paid: " + f.amountPaid +
-        " Balance: " + f.balance;
-
-      myFees.appendChild(li);
-    }
+  snap.forEach(doc => {
+    const s = doc.data();
+    const li = document.createElement("li");
+    li.textContent = s.name + " (" + s.studentId + ")";
+    studentList.appendChild(li);
   });
 }
+
+// RESULTS
+window.addResult = async function () {
+  const name = document.getElementById("r_name").value;
+  const subject = document.getElementById("subject").value;
+  const term = document.getElementById("term").value;
+  const mark = document.getElementById("mark").value;
+
+  await addDoc(collection(db, "results"), {
+    studentName: name,
+    subject,
+    term,
+    mark
+  });
+
+  loadResults();
+};
+
+async function loadResults() {
+  resultsList.innerHTML = "";
+  const snap = await getDocs(collection(db, "results"));
+
+  snap.forEach(doc => {
+    const r = doc.data();
+    const li = document.createElement("li");
+    li.textContent = r.studentName + " - " + r.subject + " - " + r.mark;
+    resultsList.appendChild(li);
+  });
+}
+
+// FEES
+window.addFees = async function () {
+  const name = document.getElementById("f_name").value;
+  const total = Number(document.getElementById("total").value);
+  const paid = Number(document.getElementById("paid").value);
+
+  await addDoc(collection(db, "fees"), {
+    studentName: name,
+    totalFees: total,
+    amountPaid: paid,
+    balance: total - paid
+  });
+
+  loadFees();
+};
+
+async function loadFees() {
+  feesList.innerHTML = "";
+  const snap = await getDocs(collection(db, "fees"));
+
+  snap.forEach(doc => {
+    const f = doc.data();
+    const li = document.createElement("li");
+    li.textContent = f.studentName + " Balance: " + f.balance;
+    feesList.appendChild(li);
+  });
+}
+
+loadStudents();
+loadResults();
+loadFees();
+
 </script>
 
 </body>
-</html>
+  </html>
