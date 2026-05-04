@@ -8,8 +8,8 @@
   <style>
     body {
       font-family: Arial;
-      background: #f4f6f9;
       margin: 0;
+      background: #f4f6f9;
     }
 
     header {
@@ -42,14 +42,15 @@
       background: #1e3a8a;
       color: white;
       border: none;
-    }
-
-    .logout-btn {
-      background: red;
+      cursor: pointer;
     }
 
     #dashboard { display: none; }
     .error { color: red; }
+
+    #logoutBtn {
+      background: red;
+    }
   </style>
 </head>
 
@@ -64,8 +65,10 @@
   <!-- LOGIN -->
   <div class="card" id="loginCard">
     <h3>Login</h3>
-    <input id="loginInput" placeholder="Email or Student ID">
+
+    <input id="loginId" placeholder="Email or Student ID">
     <input id="password" type="password" placeholder="Password">
+
     <button onclick="login()">Login</button>
     <p id="error" class="error"></p>
   </div>
@@ -75,7 +78,7 @@
 
     <div class="card">
       <h3 id="welcome"></h3>
-      <button class="logout-btn" onclick="logout()">Logout</button>
+      <button id="logoutBtn">Logout</button>
     </div>
 
     <div class="card">
@@ -100,15 +103,14 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import {
   getAuth,
   signInWithEmailAndPassword,
-  onAuthStateChanged,
-  signOut
+  signOut,
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import {
   getFirestore,
   doc,
   getDoc,
-  setDoc,
   collection,
   query,
   where,
@@ -116,110 +118,62 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
-  authDomain: "school-system-748cf.firebaseapp.com",
-  projectId: "school-system-748cf"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-let isLoggedIn = false;
+/* 🚨 FORCE LOGOUT ON PAGE LOAD (SESSION RESET RULE) */
+await signOut(auth);
 
-// LOGIN FUNCTION
+/* LOGIN */
 window.login = async function () {
 
-  const input = document.getElementById("loginInput").value.trim();
-  const password = document.getElementById("password").value.trim();
+  const id = document.getElementById("loginId").value.trim();
+  const pass = document.getElementById("password").value.trim();
   const error = document.getElementById("error");
 
   error.innerText = "";
 
   try {
 
-    let email = input;
-
-    if (!input.includes("@")) {
-
-      const q = query(
-        collection(db, "users"),
-        where("studentId", "==", input)
-      );
-
-      const snap = await getDocs(q);
-
-      if (snap.empty) {
-        error.innerText = "Student ID not found";
-        return;
-      }
-
-      email = snap.docs[0].data().email;
+    if (!id || !pass) {
+      error.innerText = "Enter ID/email and password";
+      return;
     }
 
-    await signInWithEmailAndPassword(auth, email, password);
+    await signInWithEmailAndPassword(auth, id, pass);
 
   } catch (err) {
-    error.innerText = err.message;
+    error.innerText = "Login failed";
   }
 };
 
-// LOGOUT
-window.logout = async function () {
-  isLoggedIn = false;
-  await signOut(auth);
-
-  document.getElementById("dashboard").style.display = "none";
-  document.getElementById("loginCard").style.display = "block";
-
-  document.getElementById("loginInput").value = "";
-  document.getElementById("password").value = "";
-  document.getElementById("results").innerHTML = "";
-  document.getElementById("total").innerText = "";
-  document.getElementById("paid").innerText = "";
-  document.getElementById("balance").innerText = "";
-  document.getElementById("welcome").innerText = "";
-};
-
+/* AUTH CONTROL */
 onAuthStateChanged(auth, async (user) => {
 
   if (!user) return;
-
-  isLoggedIn = true;
 
   document.getElementById("loginCard").style.display = "none";
   document.getElementById("dashboard").style.display = "block";
 
   const userRef = doc(db, "users", user.uid);
-  let userSnap = await getDoc(userRef);
+  const snap = await getDoc(userRef);
 
-  if (!userSnap.exists()) {
-    await setDoc(userRef, {
-      name: user.email,
-      email: user.email,
-      role: "student",
-      studentId: ""
-    });
+  if (!snap.exists()) return;
 
-    document.getElementById("error").innerText =
-      "Profile created. Ask admin to assign your student ID.";
-    return;
-  }
-
-  const userData = userSnap.data();
+  const data = snap.data();
 
   document.getElementById("welcome").innerText =
-    "Welcome " + userData.name;
+    "Welcome " + (data.name || "");
 
-  if (!userData.studentId) {
-    document.getElementById("error").innerText =
-      "No student ID assigned. Contact admin.";
-    return;
-  }
+  const studentId = data.studentId;
 
-  const studentId = userData.studentId;
-
-  // RESULTS
+  /* RESULTS */
   const rQuery = query(
     collection(db, "results"),
     where("studentId", "==", studentId)
@@ -232,11 +186,10 @@ onAuthStateChanged(auth, async (user) => {
 
   rSnap.forEach(d => {
     const r = d.data();
-    rDiv.innerHTML +=
-      r.subject + " (Term " + r.term + ") - " + r.mark + "<br>";
+    rDiv.innerHTML += `${r.subject} (Term ${r.term}) - ${r.mark}<br>`;
   });
 
-  // FEES
+  /* FEES */
   const fQuery = query(
     collection(db, "fees"),
     where("studentId", "==", studentId)
@@ -246,26 +199,23 @@ onAuthStateChanged(auth, async (user) => {
 
   if (!fSnap.empty) {
     const f = fSnap.docs[0].data();
+
     document.getElementById("total").innerText = f.totalFees || 0;
     document.getElementById("paid").innerText = f.amountPaid || 0;
     document.getElementById("balance").innerText = f.balance || 0;
   }
-
 });
 
-// 🚨 EXIT WARNING
-window.addEventListener("beforeunload", (e) => {
-  if (isLoggedIn) {
-    e.preventDefault();
-    e.returnValue = "Are you sure you want to leave? You will be logged out.";
-  }
-});
+/* 🔴 LOGOUT FUNCTION */
+document.getElementById("logoutBtn").onclick = async () => {
+  await signOut(auth);
+  location.reload();
+};
 
-// LOGOUT WHEN USER LEAVES
-window.addEventListener("unload", () => {
-  if (isLoggedIn) {
-    signOut(auth);
-  }
+/* ⚠️ LEAVE PAGE WARNING */
+window.addEventListener("beforeunload", function (e) {
+  e.preventDefault();
+  e.returnValue = "You will be logged out if you leave this page.";
 });
 
 </script>
