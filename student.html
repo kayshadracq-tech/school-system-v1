@@ -66,7 +66,7 @@
   <div class="card" id="loginCard">
     <h3>Login</h3>
 
-    <input id="loginId" placeholder="Email or Student ID">
+    <input id="loginInput" placeholder="Email or Student ID">
     <input id="password" type="password" placeholder="Password">
 
     <button onclick="login()">Login</button>
@@ -101,21 +101,15 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  getAuth,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-import {
   getFirestore,
-  doc,
-  getDoc,
   collection,
-  query,
-  where,
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+import {
+  getAuth,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
@@ -124,96 +118,102 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-/* LOGIN */
+/* ================= LOGIN ================= */
 window.login = async function () {
 
-  const id = document.getElementById("loginId").value.trim();
+  const input = document.getElementById("loginInput").value.trim();
   const pass = document.getElementById("password").value.trim();
   const error = document.getElementById("error");
 
   error.innerText = "";
 
-  try {
-
-    if (!id || !pass) {
-      error.innerText = "Enter ID/email and password";
-      return;
-    }
-
-    await signInWithEmailAndPassword(auth, id, pass);
-
-  } catch (err) {
-    error.innerText = "Login failed";
+  if (!input || !pass) {
+    error.innerText = "Enter Email/Student ID and Password";
+    return;
   }
-};
 
-/* AUTH CONTROL */
-onAuthStateChanged(auth, async (user) => {
+  const snap = await getDocs(collection(db, "students"));
 
-  if (!user) return;
+  let found = null;
 
+  snap.forEach(docSnap => {
+    const d = docSnap.data();
+
+    if (
+      (d.email === input || d.studentId === input) &&
+      d.password === pass
+    ) {
+      found = d;
+    }
+  });
+
+  if (!found) {
+    error.innerText = "Login failed";
+    return;
+  }
+
+  // SESSION
+  sessionStorage.setItem("studentId", found.studentId);
+  sessionStorage.setItem("studentName", found.name);
+
+  // SHOW DASHBOARD
   document.getElementById("loginCard").style.display = "none";
   document.getElementById("dashboard").style.display = "block";
 
-  const userRef = doc(db, "users", user.uid);
-  const snap = await getDoc(userRef);
-
-  if (!snap.exists()) return;
-
-  const data = snap.data();
-
   document.getElementById("welcome").innerText =
-    "Welcome " + (data.name || "");
+    "Welcome " + found.name;
 
-  const studentId = data.studentId;
+  loadData(found.studentId);
+};
 
-  /* RESULTS */
-  const rQuery = query(
-    collection(db, "results"),
-    where("studentId", "==", studentId)
-  );
+/* ================= LOAD DATA ================= */
+async function loadData(studentId) {
 
-  const rSnap = await getDocs(rQuery);
+  // RESULTS
+  const resultsSnap = await getDocs(collection(db, "results"));
 
   const rDiv = document.getElementById("results");
   rDiv.innerHTML = "";
 
-  rSnap.forEach(d => {
+  resultsSnap.forEach(d => {
     const r = d.data();
-    rDiv.innerHTML += `${r.subject} (Term ${r.term}) - ${r.mark}<br>`;
+
+    if (r.studentId === studentId) {
+      rDiv.innerHTML +=
+        `${r.subject} (Term ${r.term}) - ${r.mark}<br>`;
+    }
   });
 
-  /* FEES */
-  const fQuery = query(
-    collection(db, "fees"),
-    where("studentId", "==", studentId)
-  );
+  // FEES
+  const feesSnap = await getDocs(collection(db, "fees"));
 
-  const fSnap = await getDocs(fQuery);
+  feesSnap.forEach(d => {
+    const f = d.data();
 
-  if (!fSnap.empty) {
-    const f = fSnap.docs[0].data();
+    if (f.studentId === studentId) {
+      document.getElementById("total").innerText = f.totalFees || 0;
+      document.getElementById("paid").innerText = f.amountPaid || 0;
+      document.getElementById("balance").innerText = f.balance || 0;
+    }
+  });
+}
 
-    document.getElementById("total").innerText = f.totalFees || 0;
-    document.getElementById("paid").innerText = f.amountPaid || 0;
-    document.getElementById("balance").innerText = f.balance || 0;
-  }
-
-});
-
-/* LOGOUT */
+/* ================= LOGOUT ================= */
 document.getElementById("logoutBtn").onclick = async () => {
-  await signOut(auth);
+
+  sessionStorage.clear();
+  await signOut(auth).catch(()=>{});
+
   location.reload();
 };
 
-/* WARNING BEFORE LEAVING */
+/* ================= LEAVE WARNING ================= */
 window.addEventListener("beforeunload", function (e) {
   e.preventDefault();
-  e.returnValue = "";
+  e.returnValue = "You will be logged out if you leave this page.";
 });
 
 </script>
