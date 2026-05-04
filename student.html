@@ -128,7 +128,6 @@
         return;
       }
 
-      // FIND STUDENT BY studentId
       const q = query(
         collection(db, "students"),
         where("studentId", "==", id)
@@ -172,6 +171,26 @@
           div.innerText = r.subject + " - " + r.mark;
           resultsDiv.appendChild(div);
         });
+      }
+
+      /* ================= FEES (FIXED) ================= */
+      const feesQuery = query(
+        collection(db, "fees"),
+        where("studentId", "==", id)
+      );
+
+      const feesSnap = await getDocs(feesQuery);
+
+      if (feesSnap.empty) {
+        document.getElementById("totalFees").innerText = "0";
+        document.getElementById("paidFees").innerText = "0";
+        document.getElementById("balanceFees").innerText = "0";
+      } else {
+        const f = feesSnap.docs[0].data();
+
+        document.getElementById("totalFees").innerText = f.totalFees || 0;
+        document.getElementById("paidFees").innerText = f.amountPaid || 0;
+        document.getElementById("balanceFees").innerText = f.balance || 0;
       }
 
     } catch (err) {
