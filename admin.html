@@ -5,7 +5,7 @@
 
   <style>
     body { font-family: Arial; background:#eef2f7; padding:20px; }
-    h2 { text-align:center; }
+    h2 { text-align:center; display:none; }
 
     .section {
       background:white;
@@ -14,6 +14,7 @@
       max-width:1000px;
       border-radius:10px;
       box-shadow:0 2px 10px rgba(0,0,0,0.1);
+      display:none;
     }
 
     input { width:100%; padding:8px; margin:5px 0; }
@@ -29,12 +30,52 @@
     th { background:#007bff; color:white; padding:10px; }
     td { padding:8px; text-align:center; }
     tr:nth-child(even){ background:#f2f2f2; }
+
+    /* LOGIN OVERLAY */
+    #loginGate {
+      position:fixed;
+      top:0; left:0;
+      width:100%; height:100%;
+      background:#eef2f7;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      z-index:9999;
+    }
+
+    .loginBox {
+      background:white;
+      padding:25px;
+      border-radius:10px;
+      width:320px;
+      box-shadow:0 2px 10px rgba(0,0,0,0.2);
+      text-align:center;
+    }
+
+    .error {
+      color:red;
+      margin-top:10px;
+    }
   </style>
 </head>
 
 <body>
 
 <h2>Admin Dashboard</h2>
+
+<!-- LOGIN OVERLAY -->
+<div id="loginGate">
+  <div class="loginBox">
+    <h3>Admin Login</h3>
+
+    <input id="adminEmail" placeholder="Email">
+    <input id="adminPass" type="password" placeholder="Password">
+
+    <button id="adminLoginBtn" class="add">Login</button>
+
+    <p id="adminError" class="error"></p>
+  </div>
+</div>
 
 <!-- STUDENTS -->
 <div class="section">
@@ -107,7 +148,9 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  getAuth, onAuthStateChanged
+  getAuth,
+  signInWithEmailAndPassword,
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import {
@@ -133,10 +176,35 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+/* LOGIN HANDLER */
+document.getElementById("adminLoginBtn").onclick = async () => {
+  const email = document.getElementById("adminEmail").value.trim();
+  const pass = document.getElementById("adminPass").value.trim();
+  const err = document.getElementById("adminError");
+
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch (e) {
+    err.innerText = "Invalid login";
+  }
+};
+
+/* AUTH CONTROL (NO FLASH ISSUE FIXED) */
 onAuthStateChanged(auth, (user) => {
-  if (!user) window.location.href = "login.html";
+
+  if (!user) return;
+
+  document.getElementById("loginGate").remove();
+
+  document.querySelector("h2").style.display = "block";
+
+  document.querySelectorAll(".section").forEach(s => {
+    s.style.display = "block";
+  });
+
 });
 
+/* STATES */
 let sEdit=null, rEdit=null, fEdit=null;
 
 /* INPUTS */
@@ -161,19 +229,19 @@ const studentTable = document.getElementById("studentTable");
 const resultsTable = document.getElementById("resultsTable");
 const feesTable = document.getElementById("feesTable");
 
+/* SAFE CHECK */
 async function exists(col, field, value){
   const snap = await getDocs(collection(db,col));
   return snap.docs.some(d => d.data()[field] === value);
 }
 
-/* ================= STUDENTS ================= */
-
+/* STUDENTS */
 document.getElementById("addStudentBtn").onclick = async () => {
   const id = studentId.value.trim();
   if (!id) return alert("Student ID required");
 
   if (await exists("students","studentId",id))
-    return alert("Student ID already exists!");
+    return alert("Student ID exists");
 
   await addDoc(collection(db,"students"),{
     name:name.value,
@@ -184,12 +252,11 @@ document.getElementById("addStudentBtn").onclick = async () => {
     class:classInput.value
   });
 
-  clearStudents();
   loadStudents();
 };
 
 document.getElementById("updateStudentBtn").onclick = async () => {
-  if (!sEdit) return alert("Select student first");
+  if (!sEdit) return alert("Select student");
 
   await updateDoc(doc(db,"students",sEdit),{
     name:name.value,
@@ -201,18 +268,8 @@ document.getElementById("updateStudentBtn").onclick = async () => {
   });
 
   sEdit=null;
-  clearStudents();
   loadStudents();
 };
-
-function clearStudents(){
-  name.value="";
-  studentId.value="";
-  password.value="";
-  age.value="";
-  grade.value="";
-  classInput.value="";
-}
 
 async function loadStudents(){
   studentTable.innerHTML="";
@@ -223,19 +280,19 @@ async function loadStudents(){
 
     const row=document.createElement("tr");
     row.innerHTML=`
-      <td>${s.name || ""}</td>
-      <td>${s.studentId || ""}</td>
-      <td>${s.age || ""}</td>
-      <td>${s.grade || ""}</td>
-      <td>${s.class || ""}</td>
+      <td>${s.name||""}</td>
+      <td>${s.studentId||""}</td>
+      <td>${s.age||""}</td>
+      <td>${s.grade||""}</td>
+      <td>${s.class||""}</td>
       <td></td>
     `;
 
     const action=row.children[5];
 
     const edit=document.createElement("button");
-    edit.textContent="Edit";
     edit.className="edit";
+    edit.textContent="Edit";
     edit.onclick=()=>{
       sEdit=d.id;
       name.value=s.name;
@@ -247,8 +304,8 @@ async function loadStudents(){
     };
 
     const del=document.createElement("button");
-    del.textContent="Delete";
     del.className="delete";
+    del.textContent="Delete";
     del.onclick=async()=>{
       await deleteDoc(doc(db,"students",d.id));
       loadStudents();
@@ -261,17 +318,16 @@ async function loadStudents(){
   });
 }
 
-/* ================= RESULTS ================= */
-
+/* RESULTS */
 document.getElementById("addResultBtn").onclick = async () => {
   const id = r_studentId.value?.trim();
   const sub = subject.value?.trim();
   const t = term.value?.trim();
 
-  if (!id || !sub || !t) return alert("All fields required");
+  if (!id || !sub || !t) return alert("Fill all fields");
 
   if (!(await exists("students","studentId",id)))
-    return alert("Student does not exist");
+    return alert("Student missing");
 
   await addDoc(collection(db,"results"),{
     studentId:id,
@@ -306,18 +362,18 @@ async function loadResults(){
 
     const row=document.createElement("tr");
     row.innerHTML=`
-      <td>${r.studentId || ""}</td>
-      <td>${r.subject || ""}</td>
-      <td>${r.term || ""}</td>
-      <td>${r.mark || ""}</td>
+      <td>${r.studentId||""}</td>
+      <td>${r.subject||""}</td>
+      <td>${r.term||""}</td>
+      <td>${r.mark||""}</td>
       <td></td>
     `;
 
     const action=row.children[4];
 
     const edit=document.createElement("button");
-    edit.textContent="Edit";
     edit.className="edit";
+    edit.textContent="Edit";
     edit.onclick=()=>{
       rEdit=d.id;
       r_studentId.value=r.studentId;
@@ -327,8 +383,8 @@ async function loadResults(){
     };
 
     const del=document.createElement("button");
-    del.textContent="Delete";
     del.className="delete";
+    del.textContent="Delete";
     del.onclick=async()=>{
       await deleteDoc(doc(db,"results",d.id));
       loadResults();
@@ -341,14 +397,13 @@ async function loadResults(){
   });
 }
 
-/* ================= FEES ================= */
-
+/* FEES */
 document.getElementById("addFeesBtn").onclick = async () => {
   const id = f_studentId.value?.trim();
   if (!id) return alert("Student ID required");
 
   if (!(await exists("students","studentId",id)))
-    return alert("Student does not exist");
+    return alert("Student missing");
 
   const t = Number(total.value)||0;
   const p = Number(paid.value)||0;
@@ -389,18 +444,18 @@ async function loadFees(){
 
     const row=document.createElement("tr");
     row.innerHTML=`
-      <td>${f.studentId || ""}</td>
-      <td>${f.totalFees || 0}</td>
-      <td>${f.amountPaid || 0}</td>
-      <td>${f.balance || 0}</td>
+      <td>${f.studentId||""}</td>
+      <td>${f.totalFees||0}</td>
+      <td>${f.amountPaid||0}</td>
+      <td>${f.balance||0}</td>
       <td></td>
     `;
 
     const action=row.children[4];
 
     const edit=document.createElement("button");
-    edit.textContent="Edit";
     edit.className="edit";
+    edit.textContent="Edit";
     edit.onclick=()=>{
       fEdit=d.id;
       f_studentId.value=f.studentId;
@@ -409,8 +464,8 @@ async function loadFees(){
     };
 
     const del=document.createElement("button");
-    del.textContent="Delete";
     del.className="delete";
+    del.textContent="Delete";
     del.onclick=async()=>{
       await deleteDoc(doc(db,"fees",d.id));
       loadFees();
