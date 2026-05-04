@@ -81,6 +81,11 @@
       color: red;
       margin-top: 10px;
     }
+
+    /* 🔴 HIDE SECTIONS INITIALLY */
+    #resultsCard, #feesCard {
+      display: none;
+    }
   </style>
 </head>
 
@@ -109,14 +114,14 @@
     <div id="error" class="error"></div>
   </div>
 
-  <!-- RESULTS -->
-  <div class="card">
+  <!-- RESULTS (HIDDEN INITIALLY) -->
+  <div class="card" id="resultsCard">
     <h3>My Results</h3>
-    <div id="results">No results yet</div>
+    <div id="results"></div>
   </div>
 
-  <!-- FEES -->
-  <div class="card">
+  <!-- FEES (HIDDEN INITIALLY) -->
+  <div class="card" id="feesCard">
     <h3>My Fees</h3>
 
     <p>Total Fees: <span id="totalFees">-</span></p>
@@ -130,7 +135,6 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  // 🔴 PUT YOUR REAL FIREBASE CONFIG HERE
   const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
     authDomain: "YOUR_AUTH_DOMAIN",
@@ -148,11 +152,6 @@
 
     errorDiv.innerText = "";
 
-    if (!studentId || !password) {
-      errorDiv.innerText = "Enter ID and password";
-      return;
-    }
-
     try {
       const docRef = doc(db, "students", studentId);
       const docSnap = await getDoc(docRef);
@@ -164,11 +163,14 @@
 
       const data = docSnap.data();
 
-      // 🔐 PASSWORD CHECK
       if (data.password !== password) {
         errorDiv.innerText = "Wrong password";
         return;
       }
+
+      // ✅ SHOW SECTIONS AFTER LOGIN
+      document.getElementById("resultsCard").style.display = "block";
+      document.getElementById("feesCard").style.display = "block";
 
       // 📊 RESULTS
       const resultsDiv = document.getElementById("results");
