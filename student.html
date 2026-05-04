@@ -44,6 +44,10 @@
       border: none;
     }
 
+    .logout-btn {
+      background: red;
+    }
+
     #dashboard { display: none; }
     .error { color: red; }
   </style>
@@ -57,6 +61,7 @@
 
 <div class="container">
 
+  <!-- LOGIN -->
   <div class="card" id="loginCard">
     <h3>Login</h3>
     <input id="email" placeholder="Email">
@@ -65,10 +70,12 @@
     <p id="error" class="error"></p>
   </div>
 
+  <!-- DASHBOARD -->
   <div id="dashboard">
 
     <div class="card">
       <h3 id="welcome"></h3>
+      <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
 
     <div class="card">
@@ -118,8 +125,8 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// ✅ FORCE LOGOUT ON PAGE LOAD
-signOut(auth);
+// OPTIONAL: remove this if you no longer want forced logout on page load
+// signOut(auth);
 
 window.login = async function () {
   const email = document.getElementById("email").value;
@@ -130,6 +137,23 @@ window.login = async function () {
   } catch (err) {
     document.getElementById("error").innerText = err.message;
   }
+};
+
+window.logout = async function () {
+  await signOut(auth);
+
+  // RESET UI
+  document.getElementById("dashboard").style.display = "none";
+  document.getElementById("loginCard").style.display = "block";
+
+  // CLEAR FIELDS
+  document.getElementById("email").value = "";
+  document.getElementById("password").value = "";
+  document.getElementById("results").innerHTML = "";
+  document.getElementById("total").innerText = "";
+  document.getElementById("paid").innerText = "";
+  document.getElementById("balance").innerText = "";
+  document.getElementById("welcome").innerText = "";
 };
 
 onAuthStateChanged(auth, async (user) => {
@@ -168,6 +192,7 @@ onAuthStateChanged(auth, async (user) => {
 
   const studentId = userData.studentId;
 
+  // RESULTS
   const rQuery = query(
     collection(db, "results"),
     where("studentId", "==", studentId)
@@ -184,6 +209,7 @@ onAuthStateChanged(auth, async (user) => {
       r.subject + " (Term " + r.term + ") - " + r.mark + "<br>";
   });
 
+  // FEES
   const fQuery = query(
     collection(db, "fees"),
     where("studentId", "==", studentId)
