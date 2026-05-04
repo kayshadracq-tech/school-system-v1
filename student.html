@@ -2,25 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Student Dashboard</title>
+  <title>Student Portal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     body {
       font-family: Arial;
-      margin: 0;
       background: #f4f6f9;
+      margin: 0;
     }
 
     header {
       background: #1e3a8a;
       color: white;
-      padding: 15px;
       text-align: center;
+      padding: 15px;
     }
 
     .container {
-      max-width: 600px;
+      max-width: 500px;
       margin: auto;
       padding: 20px;
     }
@@ -28,9 +28,28 @@
     .card {
       background: white;
       padding: 15px;
-      margin-bottom: 20px;
       border-radius: 10px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background: #1e3a8a;
+      color: white;
+      border: none;
+    }
+
+    #dashboard {
+      display: none;
     }
 
     .error {
@@ -42,28 +61,39 @@
 <body>
 
 <header>
-  <h2>Student Dashboard</h2>
+  <h2>Student Portal</h2>
 </header>
 
 <div class="container">
 
-  <div class="card">
-    <p id="welcome">Loading...</p>
+  <!-- LOGIN CARD -->
+  <div class="card" id="loginCard">
+    <h3>Login</h3>
+
+    <input id="studentId" placeholder="Student ID">
+    <input id="password" type="password" placeholder="Password">
+
+    <button onclick="login()">Login</button>
+
+    <p id="error" class="error"></p>
   </div>
 
-  <div class="card">
-    <h3>Results</h3>
-    <div id="results"></div>
-  </div>
+  <!-- DASHBOARD -->
+  <div id="dashboard">
 
-  <div class="card">
-    <h3>Fees</h3>
-    <p>Total: <span id="total"></span></p>
-    <p>Paid: <span id="paid"></span></p>
-    <p>Balance: <span id="balance"></span></p>
-  </div>
+    <div class="card">
+      <h3>Results</h3>
+      <div id="results"></div>
+    </div>
 
-  <p id="error" class="error"></p>
+    <div class="card">
+      <h3>Fees</h3>
+      <p>Total: <span id="total"></span></p>
+      <p>Paid: <span id="paid"></span></p>
+      <p>Balance: <span id="balance"></span></p>
+    </div>
+
+  </div>
 
 </div>
 
@@ -71,14 +101,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  getAuth,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-import {
   getFirestore,
-  doc,
-  getDoc,
   collection,
   query,
   where,
@@ -88,95 +111,88 @@ import {
 const firebaseConfig = {
   apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
   authDomain: "school-system-748cf.firebaseapp.com",
-  projectId: "school-system-748cf",
-  storageBucket: "school-system-748cf.firebasestorage.app",
-  messagingSenderId: "899412742738",
-  appId: "1:899412742738:web:7dc83a50b53789b196858b"
+  projectId: "school-system-748cf"
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
 
-onAuthStateChanged(auth, async (user) => {
+window.login = async function () {
 
-  if (!user) {
-    window.location.href = "login.html";
+  const id = document.getElementById("studentId").value.trim();
+  const pass = document.getElementById("password").value.trim();
+  const error = document.getElementById("error");
+
+  error.innerText = "";
+
+  if (!id || !pass) {
+    error.innerText = "Enter ID and password";
     return;
   }
 
   try {
 
-    const userRef = doc(db, "users", user.uid);
-    const userSnap = await getDoc(userRef);
+    const q = query(
+      collection(db, "students"),
+      where("studentId", "==", id),
+      where("password", "==", pass)
+    );
 
-    if (!userSnap.exists()) {
-      document.getElementById("error").innerText = "User profile not found";
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      error.innerText = "Invalid login";
       return;
     }
 
-    const userData = userSnap.data();
+    const student = snap.docs[0].data();
 
-    document.getElementById("welcome").innerText =
-      "Welcome " + userData.name;
+    // SWITCH UI
+    document.getElementById("loginCard").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
 
-    // ✅ STEP 1 FIX: SAFE studentId check
-    const studentId = userData.studentId;
-
-    if (!studentId) {
-      document.getElementById("error").innerText =
-        "Student ID missing in user profile";
-      return;
-    }
-
-    // RESULTS
-    const rQuery = query(
-      collection(db, "results"),
-      where("studentId", "==", studentId)
-    );
-
-    const rSnap = await getDocs(rQuery);
-
-    const rDiv = document.getElementById("results");
-    rDiv.innerHTML = "";
-
-    if (rSnap.empty) {
-      rDiv.innerText = "No results found";
-    } else {
-      rSnap.forEach(d => {
-        const r = d.data();
-        const div = document.createElement("div");
-        div.innerText =
-          r.subject + " (Term " + r.term + ") - " + r.mark;
-        rDiv.appendChild(div);
-      });
-    }
-
-    // FEES
-    const fQuery = query(
-      collection(db, "fees"),
-      where("studentId", "==", studentId)
-    );
-
-    const fSnap = await getDocs(fQuery);
-
-    if (!fSnap.empty) {
-      const f = fSnap.docs[0].data();
-
-      document.getElementById("total").innerText = f.totalFees || 0;
-      document.getElementById("paid").innerText = f.amountPaid || 0;
-      document.getElementById("balance").innerText = f.balance || 0;
-    } else {
-      document.getElementById("total").innerText = "0";
-      document.getElementById("paid").innerText = "0";
-      document.getElementById("balance").innerText = "0";
-    }
+    loadData(student.studentId);
 
   } catch (err) {
-    document.getElementById("error").innerText = err.message;
+    error.innerText = err.message;
   }
+};
 
-});
+async function loadData(studentId) {
+
+  // RESULTS
+  const r = document.getElementById("results");
+  r.innerHTML = "";
+
+  const rq = query(
+    collection(db, "results"),
+    where("studentId", "==", studentId)
+  );
+
+  const rs = await getDocs(rq);
+
+  rs.forEach(d => {
+    const x = d.data();
+    const div = document.createElement("div");
+    div.innerText = x.subject + " (Term " + x.term + ") - " + x.mark;
+    r.appendChild(div);
+  });
+
+  // FEES
+  const fq = query(
+    collection(db, "fees"),
+    where("studentId", "==", studentId)
+  );
+
+  const fs = await getDocs(fq);
+
+  if (!fs.empty) {
+    const f = fs.docs[0].data();
+    document.getElementById("total").innerText = f.totalFees || 0;
+    document.getElementById("paid").innerText = f.amountPaid || 0;
+    document.getElementById("balance").innerText = f.balance || 0;
+  }
+}
 
 </script>
 
