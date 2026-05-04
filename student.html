@@ -125,7 +125,9 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// LOGIN FUNCTION (Email OR Student ID)
+let isLoggedIn = false;
+
+// LOGIN FUNCTION
 window.login = async function () {
 
   const input = document.getElementById("loginInput").value.trim();
@@ -138,7 +140,6 @@ window.login = async function () {
 
     let email = input;
 
-    // 🔴 If NOT email → treat as student ID
     if (!input.includes("@")) {
 
       const q = query(
@@ -165,6 +166,7 @@ window.login = async function () {
 
 // LOGOUT
 window.logout = async function () {
+  isLoggedIn = false;
   await signOut(auth);
 
   document.getElementById("dashboard").style.display = "none";
@@ -182,6 +184,8 @@ window.logout = async function () {
 onAuthStateChanged(auth, async (user) => {
 
   if (!user) return;
+
+  isLoggedIn = true;
 
   document.getElementById("loginCard").style.display = "none";
   document.getElementById("dashboard").style.display = "block";
@@ -247,6 +251,21 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById("balance").innerText = f.balance || 0;
   }
 
+});
+
+// 🚨 EXIT WARNING
+window.addEventListener("beforeunload", (e) => {
+  if (isLoggedIn) {
+    e.preventDefault();
+    e.returnValue = "Are you sure you want to leave? You will be logged out.";
+  }
+});
+
+// LOGOUT WHEN USER LEAVES
+window.addEventListener("unload", () => {
+  if (isLoggedIn) {
+    signOut(auth);
+  }
 });
 
 </script>
