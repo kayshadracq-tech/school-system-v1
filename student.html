@@ -127,9 +127,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* 🚨 FORCE LOGOUT ON PAGE LOAD (SESSION RESET RULE) */
-await signOut(auth);
-
 /* LOGIN */
 window.login = async function () {
 
@@ -204,18 +201,19 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById("paid").innerText = f.amountPaid || 0;
     document.getElementById("balance").innerText = f.balance || 0;
   }
+
 });
 
-/* 🔴 LOGOUT FUNCTION */
+/* LOGOUT */
 document.getElementById("logoutBtn").onclick = async () => {
   await signOut(auth);
   location.reload();
 };
 
-/* ⚠️ LEAVE PAGE WARNING */
+/* WARNING BEFORE LEAVING */
 window.addEventListener("beforeunload", function (e) {
   e.preventDefault();
-  e.returnValue = "You will be logged out if you leave this page.";
+  e.returnValue = "";
 });
 
 </script>
