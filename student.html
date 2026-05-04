@@ -125,9 +125,21 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+/* ================= SESSION CONTROL ================= */
 let isLoggedIn = false;
 
-/* LOGIN FIXED */
+if (sessionStorage.getItem("loggedOut") === "true") {
+  sessionStorage.clear();
+}
+
+/* FORCE BACK BUTTON BLOCK */
+history.pushState(null, null, location.href);
+window.onpopstate = function () {
+  history.go(1);
+  logout(); // force logout if back pressed
+};
+
+/* ================= LOGIN ================= */
 window.login = async function () {
 
   const input = document.getElementById("loginInput").value.trim();
@@ -140,7 +152,6 @@ window.login = async function () {
 
     let email = input;
 
-    // STEP 1: if not email, resolve via studentId
     if (!input.includes("@")) {
 
       const q = query(
@@ -156,34 +167,51 @@ window.login = async function () {
       }
 
       email = snap.docs[0].data().email;
-
-      if (!email) {
-        error.innerText = "Email missing in user profile";
-        return;
-      }
     }
 
-    // STEP 2: login with email
     await signInWithEmailAndPassword(auth, email, password);
+
+    sessionStorage.setItem("loggedOut", "false");
 
   } catch (err) {
     error.innerText = "Login failed";
-    console.log(err);
   }
 };
 
-/* LOGOUT */
+/* ================= LOGOUT ================= */
 window.logout = async function () {
+
   isLoggedIn = false;
+
   await signOut(auth);
 
-  location.reload();
+  sessionStorage.setItem("loggedOut", "true");
+
+  document.getElementById("dashboard").style.display = "none";
+  document.getElementById("loginCard").style.display = "block";
+
+  document.getElementById("loginInput").value = "";
+  document.getElementById("password").value = "";
+  document.getElementById("results").innerHTML = "";
+  document.getElementById("total").innerText = "";
+  document.getElementById("paid").innerText = "";
+  document.getElementById("balance").innerText = "";
+  document.getElementById("welcome").innerText = "";
 };
 
-/* AUTH STATE */
+/* ================= AUTH GUARD ================= */
 onAuthStateChanged(auth, async (user) => {
 
-  if (!user) return;
+  if (!user) {
+    document.getElementById("dashboard").style.display = "none";
+    document.getElementById("loginCard").style.display = "block";
+    return;
+  }
+
+  if (sessionStorage.getItem("loggedOut") === "true") {
+    await signOut(auth);
+    return;
+  }
 
   isLoggedIn = true;
 
@@ -229,11 +257,10 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-/* EXIT PROTECTION */
-window.addEventListener("beforeunload", (e) => {
+/* ================= TAB CLOSE LOGOUT ================= */
+window.addEventListener("beforeunload", () => {
   if (isLoggedIn) {
-    e.preventDefault();
-    e.returnValue = "";
+    sessionStorage.setItem("loggedOut", "true");
   }
 });
 
