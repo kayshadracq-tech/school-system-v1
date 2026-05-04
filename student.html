@@ -107,12 +107,11 @@ onAuthStateChanged(auth, async (user) => {
 
   try {
 
-    // GET USER PROFILE (USING UID)
     const userRef = doc(db, "users", user.uid);
     const userSnap = await getDoc(userRef);
 
     if (!userSnap.exists()) {
-      document.getElementById("error").innerText = "User not found";
+      document.getElementById("error").innerText = "User profile not found";
       return;
     }
 
@@ -121,12 +120,16 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById("welcome").innerText =
       "Welcome " + userData.name;
 
+    // ✅ STEP 1 FIX: SAFE studentId check
     const studentId = userData.studentId;
 
-    /* ================= RESULTS ================= */
-    const rDiv = document.getElementById("results");
-    rDiv.innerHTML = "";
+    if (!studentId) {
+      document.getElementById("error").innerText =
+        "Student ID missing in user profile";
+      return;
+    }
 
+    // RESULTS
     const rQuery = query(
       collection(db, "results"),
       where("studentId", "==", studentId)
@@ -134,21 +137,22 @@ onAuthStateChanged(auth, async (user) => {
 
     const rSnap = await getDocs(rQuery);
 
+    const rDiv = document.getElementById("results");
+    rDiv.innerHTML = "";
+
     if (rSnap.empty) {
       rDiv.innerText = "No results found";
     } else {
       rSnap.forEach(d => {
         const r = d.data();
         const div = document.createElement("div");
-
         div.innerText =
           r.subject + " (Term " + r.term + ") - " + r.mark;
-
         rDiv.appendChild(div);
       });
     }
 
-    /* ================= FEES ================= */
+    // FEES
     const fQuery = query(
       collection(db, "fees"),
       where("studentId", "==", studentId)
