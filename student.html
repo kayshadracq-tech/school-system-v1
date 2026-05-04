@@ -148,6 +148,9 @@
         return;
       }
 
+      /* ✅ STEP 1 FIX ADDED HERE */
+      window.currentStudent = data;
+
       document.getElementById("resultsCard").style.display = "block";
       document.getElementById("feesCard").style.display = "block";
 
@@ -173,7 +176,7 @@
         });
       }
 
-      /* ================= FEES (FIXED) ================= */
+      /* ================= FEES ================= */
       const feesQuery = query(
         collection(db, "fees"),
         where("studentId", "==", id)
