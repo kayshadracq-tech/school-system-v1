@@ -148,13 +148,12 @@
         return;
       }
 
-      /* ✅ STEP 1 FIX ADDED HERE */
       window.currentStudent = data;
 
       document.getElementById("resultsCard").style.display = "block";
       document.getElementById("feesCard").style.display = "block";
 
-      /* ================= RESULTS ================= */
+      /* RESULTS */
       const resultsDiv = document.getElementById("results");
       resultsDiv.innerHTML = "";
 
@@ -171,12 +170,15 @@
         resultsSnap.forEach(d => {
           const r = d.data();
           const div = document.createElement("div");
-          div.innerText = r.subject + " - " + r.mark;
+
+          /* ✅ UPDATED LINE (TERM ADDED) */
+          div.innerText = r.subject + " (Term " + r.term + ") - " + r.mark;
+
           resultsDiv.appendChild(div);
         });
       }
 
-      /* ================= FEES ================= */
+      /* FEES */
       const feesQuery = query(
         collection(db, "fees"),
         where("studentId", "==", id)
