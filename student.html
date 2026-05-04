@@ -7,7 +7,7 @@
 
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: Arial;
       margin: 0;
       background: #f4f6f9;
     }
@@ -27,15 +27,14 @@
 
     nav a {
       color: white;
-      text-decoration: none;
       margin: 0 10px;
-      font-weight: bold;
+      text-decoration: none;
     }
 
     .container {
-      padding: 20px;
       max-width: 600px;
       margin: auto;
+      padding: 20px;
     }
 
     .card {
@@ -46,17 +45,12 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
 
-    h3 {
-      margin-top: 0;
-      color: #1e3a8a;
-    }
-
     input {
       width: 100%;
       padding: 10px;
       margin-top: 10px;
-      border-radius: 5px;
       border: 1px solid #ccc;
+      border-radius: 5px;
     }
 
     button {
@@ -67,20 +61,15 @@
       color: white;
       border: none;
       border-radius: 5px;
-      cursor: pointer;
     }
 
     button:hover {
       background: #162c6b;
     }
 
-    .result-item {
+    .result {
       padding: 8px;
       border-bottom: 1px solid #ddd;
-    }
-
-    .fees p {
-      margin: 5px 0;
     }
 
     .balance {
@@ -94,6 +83,7 @@
     }
   </style>
 </head>
+
 <body>
 
 <header>
@@ -101,7 +91,7 @@
 </header>
 
 <nav>
-  <a href="index.html">Home</a> |
+  <a href="index.html">Home</a>
   <a href="admin.html">Admin</a>
 </nav>
 
@@ -110,8 +100,12 @@
   <!-- LOGIN -->
   <div class="card">
     <h3>Student Login</h3>
+
     <input type="text" id="studentId" placeholder="Enter Student ID">
+    <input type="password" id="password" placeholder="Enter Password">
+
     <button onclick="login()">Login</button>
+
     <div id="error" class="error"></div>
   </div>
 
@@ -122,8 +116,9 @@
   </div>
 
   <!-- FEES -->
-  <div class="card fees">
+  <div class="card">
     <h3>My Fees</h3>
+
     <p>Total Fees: <span id="totalFees">-</span></p>
     <p>Paid: <span id="paidFees">-</span></p>
     <p>Balance: <span id="balanceFees" class="balance">-</span></p>
@@ -131,14 +126,14 @@
 
 </div>
 
-<!-- FIREBASE -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+  // 🔴 PUT YOUR REAL FIREBASE CONFIG HERE
   const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    authDomain: "YOUR_AUTH_DOMAIN",
     projectId: "YOUR_PROJECT_ID",
   };
 
@@ -146,15 +141,17 @@
   const db = getFirestore(app);
 
   window.login = async function () {
+
     const studentId = document.getElementById("studentId").value.trim();
+    const password = document.getElementById("password").value.trim();
     const errorDiv = document.getElementById("error");
 
-    if (!studentId) {
-      errorDiv.innerText = "Enter student ID";
+    errorDiv.innerText = "";
+
+    if (!studentId || !password) {
+      errorDiv.innerText = "Enter ID and password";
       return;
     }
-
-    errorDiv.innerText = "";
 
     try {
       const docRef = doc(db, "students", studentId);
@@ -167,14 +164,20 @@
 
       const data = docSnap.data();
 
-      // RESULTS
+      // 🔐 PASSWORD CHECK
+      if (data.password !== password) {
+        errorDiv.innerText = "Wrong password";
+        return;
+      }
+
+      // 📊 RESULTS
       const resultsDiv = document.getElementById("results");
       resultsDiv.innerHTML = "";
 
       if (data.results && data.results.length > 0) {
         data.results.forEach(r => {
           const div = document.createElement("div");
-          div.className = "result-item";
+          div.className = "result";
           div.innerText = `${r.subject} - ${r.score}`;
           resultsDiv.appendChild(div);
         });
@@ -182,7 +185,7 @@
         resultsDiv.innerText = "No results yet";
       }
 
-      // FEES
+      // 💰 FEES
       const total = data.totalFees || 0;
       const paid = data.paid || 0;
       const balance = total - paid;
@@ -191,8 +194,8 @@
       document.getElementById("paidFees").innerText = paid;
       document.getElementById("balanceFees").innerText = balance;
 
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.log(err);
       errorDiv.innerText = "Error loading data";
     }
   };
