@@ -33,25 +33,6 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
 
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-    }
-
-    button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      background: #1e3a8a;
-      color: white;
-      border: none;
-    }
-
-    #resultsCard, #feesCard {
-      display: none;
-    }
-
     .error {
       color: red;
     }
@@ -66,143 +47,133 @@
 
 <div class="container">
 
-  <!-- LOGIN -->
   <div class="card">
-    <h3>Login</h3>
-    <input type="text" id="studentId" placeholder="Student ID">
-    <input type="password" id="password" placeholder="Password">
-    <button onclick="login()">Login</button>
-    <p id="error" class="error"></p>
+    <p id="welcome">Loading...</p>
   </div>
 
-  <!-- RESULTS -->
-  <div class="card" id="resultsCard">
+  <div class="card">
     <h3>Results</h3>
     <div id="results"></div>
   </div>
 
-  <!-- FEES -->
-  <div class="card" id="feesCard">
+  <div class="card">
     <h3>Fees</h3>
-    <p>Total: <span id="totalFees"></span></p>
-    <p>Paid: <span id="paidFees"></span></p>
-    <p>Balance: <span id="balanceFees"></span></p>
+    <p>Total: <span id="total"></span></p>
+    <p>Paid: <span id="paid"></span></p>
+    <p>Balance: <span id="balance"></span></p>
   </div>
+
+  <p id="error" class="error"></p>
 
 </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import {
-    getFirestore,
-    collection,
-    query,
-    where,
-    getDocs
-  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
-    authDomain: "school-system-748cf.firebaseapp.com",
-    projectId: "school-system-748cf",
-    storageBucket: "school-system-748cf.firebasestorage.app",
-    messagingSenderId: "899412742738",
-    appId: "1:899412742738:web:7dc83a50b53789b196858b"
-  };
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  window.login = async function () {
+const firebaseConfig = {
+  apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
+  authDomain: "school-system-748cf.firebaseapp.com",
+  projectId: "school-system-748cf",
+  storageBucket: "school-system-748cf.firebasestorage.app",
+  messagingSenderId: "899412742738",
+  appId: "1:899412742738:web:7dc83a50b53789b196858b"
+};
 
-    const id = document.getElementById("studentId").value.trim();
-    const pass = document.getElementById("password").value.trim();
-    const error = document.getElementById("error");
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-    error.innerText = "";
+onAuthStateChanged(auth, async (user) => {
 
-    try {
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
 
-      if (!id || !pass) {
-        error.innerText = "Enter ID and password";
-        return;
-      }
+  try {
 
-      const q = query(
-        collection(db, "students"),
-        where("studentId", "==", id)
-      );
+    // GET USER PROFILE (USING UID)
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
 
-      const snap = await getDocs(q);
-
-      if (snap.empty) {
-        error.innerText = "Student not found";
-        return;
-      }
-
-      const studentDoc = snap.docs[0];
-      const data = studentDoc.data();
-
-      if (data.password !== pass) {
-        error.innerText = "Wrong password";
-        return;
-      }
-
-      window.currentStudent = data;
-
-      document.getElementById("resultsCard").style.display = "block";
-      document.getElementById("feesCard").style.display = "block";
-
-      /* RESULTS */
-      const resultsDiv = document.getElementById("results");
-      resultsDiv.innerHTML = "";
-
-      const resultsQuery = query(
-        collection(db, "results"),
-        where("studentId", "==", id)
-      );
-
-      const resultsSnap = await getDocs(resultsQuery);
-
-      if (resultsSnap.empty) {
-        resultsDiv.innerText = "No results found";
-      } else {
-        resultsSnap.forEach(d => {
-          const r = d.data();
-          const div = document.createElement("div");
-
-          /* ✅ UPDATED LINE (TERM ADDED) */
-          div.innerText = r.subject + " (Term " + r.term + ") - " + r.mark;
-
-          resultsDiv.appendChild(div);
-        });
-      }
-
-      /* FEES */
-      const feesQuery = query(
-        collection(db, "fees"),
-        where("studentId", "==", id)
-      );
-
-      const feesSnap = await getDocs(feesQuery);
-
-      if (feesSnap.empty) {
-        document.getElementById("totalFees").innerText = "0";
-        document.getElementById("paidFees").innerText = "0";
-        document.getElementById("balanceFees").innerText = "0";
-      } else {
-        const f = feesSnap.docs[0].data();
-
-        document.getElementById("totalFees").innerText = f.totalFees || 0;
-        document.getElementById("paidFees").innerText = f.amountPaid || 0;
-        document.getElementById("balanceFees").innerText = f.balance || 0;
-      }
-
-    } catch (err) {
-      console.error(err);
-      error.innerText = err.message;
+    if (!userSnap.exists()) {
+      document.getElementById("error").innerText = "User not found";
+      return;
     }
-  };
+
+    const userData = userSnap.data();
+
+    document.getElementById("welcome").innerText =
+      "Welcome " + userData.name;
+
+    const studentId = userData.studentId;
+
+    /* ================= RESULTS ================= */
+    const rDiv = document.getElementById("results");
+    rDiv.innerHTML = "";
+
+    const rQuery = query(
+      collection(db, "results"),
+      where("studentId", "==", studentId)
+    );
+
+    const rSnap = await getDocs(rQuery);
+
+    if (rSnap.empty) {
+      rDiv.innerText = "No results found";
+    } else {
+      rSnap.forEach(d => {
+        const r = d.data();
+        const div = document.createElement("div");
+
+        div.innerText =
+          r.subject + " (Term " + r.term + ") - " + r.mark;
+
+        rDiv.appendChild(div);
+      });
+    }
+
+    /* ================= FEES ================= */
+    const fQuery = query(
+      collection(db, "fees"),
+      where("studentId", "==", studentId)
+    );
+
+    const fSnap = await getDocs(fQuery);
+
+    if (!fSnap.empty) {
+      const f = fSnap.docs[0].data();
+
+      document.getElementById("total").innerText = f.totalFees || 0;
+      document.getElementById("paid").innerText = f.amountPaid || 0;
+      document.getElementById("balance").innerText = f.balance || 0;
+    } else {
+      document.getElementById("total").innerText = "0";
+      document.getElementById("paid").innerText = "0";
+      document.getElementById("balance").innerText = "0";
+    }
+
+  } catch (err) {
+    document.getElementById("error").innerText = err.message;
+  }
+
+});
+
 </script>
 
 </body>
