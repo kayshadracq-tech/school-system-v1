@@ -133,14 +133,10 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-/* SECURITY CHECK (NO UI CHANGE) */
 onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    window.location.href = "login.html";
-  }
+  if (!user) window.location.href = "login.html";
 });
 
-/* FIXED EDIT STATES */
 let sEdit=null, rEdit=null, fEdit=null;
 
 /* INPUTS */
@@ -165,13 +161,12 @@ const studentTable = document.getElementById("studentTable");
 const resultsTable = document.getElementById("resultsTable");
 const feesTable = document.getElementById("feesTable");
 
-/* SAFE EXISTS CHECK */
 async function exists(col, field, value){
   const snap = await getDocs(collection(db,col));
   return snap.docs.some(d => d.data()[field] === value);
 }
 
-/* ================= STUDENTS (UNCHANGED LOGIC) ================= */
+/* ================= STUDENTS ================= */
 
 document.getElementById("addStudentBtn").onclick = async () => {
   const id = studentId.value.trim();
@@ -189,6 +184,7 @@ document.getElementById("addStudentBtn").onclick = async () => {
     class:classInput.value
   });
 
+  clearStudents();
   loadStudents();
 };
 
@@ -205,8 +201,18 @@ document.getElementById("updateStudentBtn").onclick = async () => {
   });
 
   sEdit=null;
+  clearStudents();
   loadStudents();
 };
+
+function clearStudents(){
+  name.value="";
+  studentId.value="";
+  password.value="";
+  age.value="";
+  grade.value="";
+  classInput.value="";
+}
 
 async function loadStudents(){
   studentTable.innerHTML="";
@@ -217,11 +223,11 @@ async function loadStudents(){
 
     const row=document.createElement("tr");
     row.innerHTML=`
-      <td>${s.name}</td>
-      <td>${s.studentId}</td>
-      <td>${s.age}</td>
-      <td>${s.grade}</td>
-      <td>${s.class}</td>
+      <td>${s.name || ""}</td>
+      <td>${s.studentId || ""}</td>
+      <td>${s.age || ""}</td>
+      <td>${s.grade || ""}</td>
+      <td>${s.class || ""}</td>
       <td></td>
     `;
 
@@ -255,7 +261,7 @@ async function loadStudents(){
   });
 }
 
-/* ================= RESULTS (FIXED INPUT SAFETY ONLY) ================= */
+/* ================= RESULTS ================= */
 
 document.getElementById("addResultBtn").onclick = async () => {
   const id = r_studentId.value?.trim();
@@ -266,14 +272,6 @@ document.getElementById("addResultBtn").onclick = async () => {
 
   if (!(await exists("students","studentId",id)))
     return alert("Student does not exist");
-
-  const snap = await getDocs(collection(db,"results"));
-  const duplicate = snap.docs.some(d=>{
-    const r=d.data();
-    return r.studentId===id && r.subject===sub && r.term===t;
-  });
-
-  if (duplicate) return alert("Result already exists");
 
   await addDoc(collection(db,"results"),{
     studentId:id,
@@ -308,10 +306,10 @@ async function loadResults(){
 
     const row=document.createElement("tr");
     row.innerHTML=`
-      <td>${r.studentId}</td>
-      <td>${r.subject}</td>
-      <td>${r.term}</td>
-      <td>${r.mark}</td>
+      <td>${r.studentId || ""}</td>
+      <td>${r.subject || ""}</td>
+      <td>${r.term || ""}</td>
+      <td>${r.mark || ""}</td>
       <td></td>
     `;
 
@@ -343,7 +341,7 @@ async function loadResults(){
   });
 }
 
-/* ================= FEES (FIXED INPUT SAFETY ONLY) ================= */
+/* ================= FEES ================= */
 
 document.getElementById("addFeesBtn").onclick = async () => {
   const id = f_studentId.value?.trim();
@@ -351,10 +349,6 @@ document.getElementById("addFeesBtn").onclick = async () => {
 
   if (!(await exists("students","studentId",id)))
     return alert("Student does not exist");
-
-  const snap = await getDocs(collection(db,"fees"));
-  if (snap.docs.some(d=>d.data().studentId===id))
-    return alert("Fees already exist");
 
   const t = Number(total.value)||0;
   const p = Number(paid.value)||0;
@@ -395,10 +389,10 @@ async function loadFees(){
 
     const row=document.createElement("tr");
     row.innerHTML=`
-      <td>${f.studentId}</td>
-      <td>${f.totalFees}</td>
-      <td>${f.amountPaid}</td>
-      <td>${f.balance}</td>
+      <td>${f.studentId || ""}</td>
+      <td>${f.totalFees || 0}</td>
+      <td>${f.amountPaid || 0}</td>
+      <td>${f.balance || 0}</td>
       <td></td>
     `;
 
