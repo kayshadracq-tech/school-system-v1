@@ -125,19 +125,8 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* ================= SESSION CONTROL ================= */
+/* ================= SESSION STATE ================= */
 let isLoggedIn = false;
-
-if (sessionStorage.getItem("loggedOut") === "true") {
-  sessionStorage.clear();
-}
-
-/* FORCE BACK BUTTON BLOCK */
-history.pushState(null, null, location.href);
-window.onpopstate = function () {
-  history.go(1);
-  logout(); // force logout if back pressed
-};
 
 /* ================= LOGIN ================= */
 window.login = async function () {
@@ -171,8 +160,6 @@ window.login = async function () {
 
     await signInWithEmailAndPassword(auth, email, password);
 
-    sessionStorage.setItem("loggedOut", "false");
-
   } catch (err) {
     error.innerText = "Login failed";
   }
@@ -180,40 +167,33 @@ window.login = async function () {
 
 /* ================= LOGOUT ================= */
 window.logout = async function () {
-
   isLoggedIn = false;
-
   await signOut(auth);
-
-  sessionStorage.setItem("loggedOut", "true");
-
-  document.getElementById("dashboard").style.display = "none";
-  document.getElementById("loginCard").style.display = "block";
-
-  document.getElementById("loginInput").value = "";
-  document.getElementById("password").value = "";
-  document.getElementById("results").innerHTML = "";
-  document.getElementById("total").innerText = "";
-  document.getElementById("paid").innerText = "";
-  document.getElementById("balance").innerText = "";
-  document.getElementById("welcome").innerText = "";
+  sessionStorage.clear();
+  location.reload();
 };
 
-/* ================= AUTH GUARD ================= */
+/* ================= BACK BUTTON CONTROL (FIXED) ================= */
+window.addEventListener("popstate", () => {
+  if (isLoggedIn) {
+    logout();
+  }
+});
+
+/* ================= AUTH STATE ================= */
 onAuthStateChanged(auth, async (user) => {
 
   if (!user) {
-    document.getElementById("dashboard").style.display = "none";
+    isLoggedIn = false;
     document.getElementById("loginCard").style.display = "block";
-    return;
-  }
-
-  if (sessionStorage.getItem("loggedOut") === "true") {
-    await signOut(auth);
+    document.getElementById("dashboard").style.display = "none";
     return;
   }
 
   isLoggedIn = true;
+
+  /* lock history ONLY after login */
+  history.pushState(null, null, location.href);
 
   document.getElementById("loginCard").style.display = "none";
   document.getElementById("dashboard").style.display = "block";
@@ -254,13 +234,6 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById("total").innerText = f.totalFees || 0;
     document.getElementById("paid").innerText = f.amountPaid || 0;
     document.getElementById("balance").innerText = f.balance || 0;
-  }
-});
-
-/* ================= TAB CLOSE LOGOUT ================= */
-window.addEventListener("beforeunload", () => {
-  if (isLoggedIn) {
-    sessionStorage.setItem("loggedOut", "true");
   }
 });
 
