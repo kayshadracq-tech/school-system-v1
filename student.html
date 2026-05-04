@@ -8,8 +8,8 @@
   <style>
     body {
       font-family: Arial;
-      margin: 0;
       background: #f4f6f9;
+      margin: 0;
     }
 
     header {
@@ -42,15 +42,14 @@
       background: #1e3a8a;
       color: white;
       border: none;
-      cursor: pointer;
+    }
+
+    .logout-btn {
+      background: red;
     }
 
     #dashboard { display: none; }
     .error { color: red; }
-
-    #logoutBtn {
-      background: red;
-    }
   </style>
 </head>
 
@@ -65,10 +64,8 @@
   <!-- LOGIN -->
   <div class="card" id="loginCard">
     <h3>Login</h3>
-
     <input id="loginInput" placeholder="Email or Student ID">
     <input id="password" type="password" placeholder="Password">
-
     <button onclick="login()">Login</button>
     <p id="error" class="error"></p>
   </div>
@@ -78,7 +75,7 @@
 
     <div class="card">
       <h3 id="welcome"></h3>
-      <button id="logoutBtn">Logout</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
 
     <div class="card">
@@ -101,119 +98,143 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  getFirestore,
-  collection,
-  getDocs
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-import {
   getAuth,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
   signOut
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+import {
+  getFirestore,
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID"
+  apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
+  authDomain: "school-system-748cf.firebaseapp.com",
+  projectId: "school-system-748cf"
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-/* ================= LOGIN ================= */
+let isLoggedIn = false;
+
+/* LOGIN FIXED */
 window.login = async function () {
 
   const input = document.getElementById("loginInput").value.trim();
-  const pass = document.getElementById("password").value.trim();
+  const password = document.getElementById("password").value.trim();
   const error = document.getElementById("error");
 
   error.innerText = "";
 
-  if (!input || !pass) {
-    error.innerText = "Enter Email/Student ID and Password";
-    return;
-  }
+  try {
 
-  const snap = await getDocs(collection(db, "students"));
+    let email = input;
 
-  let found = null;
+    // STEP 1: if not email, resolve via studentId
+    if (!input.includes("@")) {
 
-  snap.forEach(docSnap => {
-    const d = docSnap.data();
+      const q = query(
+        collection(db, "users"),
+        where("studentId", "==", input)
+      );
 
-    if (
-      (d.email === input || d.studentId === input) &&
-      d.password === pass
-    ) {
-      found = d;
+      const snap = await getDocs(q);
+
+      if (snap.empty) {
+        error.innerText = "Student ID not found";
+        return;
+      }
+
+      email = snap.docs[0].data().email;
+
+      if (!email) {
+        error.innerText = "Email missing in user profile";
+        return;
+      }
     }
-  });
 
-  if (!found) {
+    // STEP 2: login with email
+    await signInWithEmailAndPassword(auth, email, password);
+
+  } catch (err) {
     error.innerText = "Login failed";
-    return;
+    console.log(err);
   }
-
-  // SESSION
-  sessionStorage.setItem("studentId", found.studentId);
-  sessionStorage.setItem("studentName", found.name);
-
-  // SHOW DASHBOARD
-  document.getElementById("loginCard").style.display = "none";
-  document.getElementById("dashboard").style.display = "block";
-
-  document.getElementById("welcome").innerText =
-    "Welcome " + found.name;
-
-  loadData(found.studentId);
 };
 
-/* ================= LOAD DATA ================= */
-async function loadData(studentId) {
-
-  // RESULTS
-  const resultsSnap = await getDocs(collection(db, "results"));
-
-  const rDiv = document.getElementById("results");
-  rDiv.innerHTML = "";
-
-  resultsSnap.forEach(d => {
-    const r = d.data();
-
-    if (r.studentId === studentId) {
-      rDiv.innerHTML +=
-        `${r.subject} (Term ${r.term}) - ${r.mark}<br>`;
-    }
-  });
-
-  // FEES
-  const feesSnap = await getDocs(collection(db, "fees"));
-
-  feesSnap.forEach(d => {
-    const f = d.data();
-
-    if (f.studentId === studentId) {
-      document.getElementById("total").innerText = f.totalFees || 0;
-      document.getElementById("paid").innerText = f.amountPaid || 0;
-      document.getElementById("balance").innerText = f.balance || 0;
-    }
-  });
-}
-
-/* ================= LOGOUT ================= */
-document.getElementById("logoutBtn").onclick = async () => {
-
-  sessionStorage.clear();
-  await signOut(auth).catch(()=>{});
+/* LOGOUT */
+window.logout = async function () {
+  isLoggedIn = false;
+  await signOut(auth);
 
   location.reload();
 };
 
-/* ================= LEAVE WARNING ================= */
-window.addEventListener("beforeunload", function (e) {
-  e.preventDefault();
-  e.returnValue = "You will be logged out if you leave this page.";
+/* AUTH STATE */
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) return;
+
+  isLoggedIn = true;
+
+  document.getElementById("loginCard").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
+
+  const userRef = doc(db, "users", user.uid);
+  let userSnap = await getDoc(userRef);
+
+  if (!userSnap.exists()) {
+    await setDoc(userRef, {
+      name: user.email,
+      email: user.email,
+      role: "student",
+      studentId: ""
+    });
+  }
+
+  const userData = userSnap.data();
+
+  document.getElementById("welcome").innerText =
+    "Welcome " + userData.name;
+
+  const studentId = userData.studentId;
+
+  const rSnap = await getDocs(query(collection(db,"results"), where("studentId","==",studentId)));
+
+  const rDiv = document.getElementById("results");
+  rDiv.innerHTML = "";
+
+  rSnap.forEach(d => {
+    const r = d.data();
+    rDiv.innerHTML += `${r.subject} (Term ${r.term}) - ${r.mark}<br>`;
+  });
+
+  const fSnap = await getDocs(query(collection(db,"fees"), where("studentId","==",studentId)));
+
+  if (!fSnap.empty) {
+    const f = fSnap.docs[0].data();
+    document.getElementById("total").innerText = f.totalFees || 0;
+    document.getElementById("paid").innerText = f.amountPaid || 0;
+    document.getElementById("balance").innerText = f.balance || 0;
+  }
+});
+
+/* EXIT PROTECTION */
+window.addEventListener("beforeunload", (e) => {
+  if (isLoggedIn) {
+    e.preventDefault();
+    e.returnValue = "";
+  }
 });
 
 </script>
