@@ -1,59 +1,119 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>School System</title>
+  <meta charset="UTF-8">
+  <title>Student Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     body {
       font-family: Arial;
-      background: #eef2f7;
-      text-align: center;
-      padding: 50px;
+      background: #f4f6f9;
+      margin: 0;
     }
 
-    .box {
-      background: white;
-      padding: 30px;
+    header {
+      background: #1e3a8a;
+      color: white;
+      text-align: center;
+      padding: 15px;
+    }
+
+    .container {
       max-width: 500px;
       margin: auto;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 15px;
       border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
     }
 
-    h1 {
-      color: #007bff;
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
     }
 
-    a {
-      display: block;
-      margin: 15px 0;
-      padding: 12px;
-      text-decoration: none;
-      background: #007bff;
+    button {
+      background: #1e3a8a;
       color: white;
-      border-radius: 6px;
+      border: none;
     }
 
-    a:hover {
-      background: #0056b3;
+    .logout-btn {
+      background: red;
     }
+
+    #dashboard { display: none; }
+    .error { color: red; }
   </style>
 </head>
 
 <body>
 
-  <div class="box">
-    <h1>School Management Information System (SMIS)</h1>
+<header>
+  <h2>Student Portal</h2>
+</header>
 
-    <p>Choose a portal to continue:</p>
+<div class="container">
 
-    <a href="admin.html">Admin Dashboard</a>
-    <a href="student.html">Student Portal</a>
+  <!-- LOGIN -->
+  <div class="card" id="loginCard">
+    <h3>Login</h3>
+    <input id="loginInput" placeholder="Email or Student ID">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p id="error" class="error"></p>
   </div>
 
+  <!-- DASHBOARD -->
+  <div id="dashboard">
+
+    <div class="card">
+      <h3 id="welcome"></h3>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="card">
+      <h3>Results</h3>
+      <div id="results"></div>
+    </div>
+
+    <div class="card">
+      <h3>Fees</h3>
+      <p>Total: <span id="total"></span></p>
+      <p>Paid: <span id="paid"></span></p>
+      <p>Balance: <span id="balance"></span></p>
+    </div>
+
+  </div>
+
+</div>
+
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  collection,
+  query,
+  where,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
@@ -63,9 +123,151 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-// 🔴 FORCE LOGOUT EVERY TIME INDEX LOADS
-signOut(auth).catch(() => {});
+let isLoggedIn = false;
+
+/* 🔴 FORCE LOGOUT IF USER LEFT PREVIOUSLY */
+if (localStorage.getItem("forceLogout") === "true") {
+  signOut(auth);
+  localStorage.removeItem("forceLogout");
+}
+
+// LOGIN
+window.login = async function () {
+
+  const input = document.getElementById("loginInput").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const error = document.getElementById("error");
+
+  error.innerText = "";
+
+  try {
+
+    let email = input;
+
+    if (!input.includes("@")) {
+
+      const q = query(
+        collection(db, "users"),
+        where("studentId", "==", input)
+      );
+
+      const snap = await getDocs(q);
+
+      if (snap.empty) {
+        error.innerText = "Student ID not found";
+        return;
+      }
+
+      email = snap.docs[0].data().email;
+    }
+
+    await signInWithEmailAndPassword(auth, email, password);
+
+  } catch (err) {
+    error.innerText = err.message;
+  }
+};
+
+// LOGOUT BUTTON
+window.logout = async function () {
+  isLoggedIn = false;
+  await signOut(auth);
+
+  document.getElementById("dashboard").style.display = "none";
+  document.getElementById("loginCard").style.display = "block";
+
+  document.getElementById("loginInput").value = "";
+  document.getElementById("password").value = "";
+  document.getElementById("results").innerHTML = "";
+  document.getElementById("total").innerText = "";
+  document.getElementById("paid").innerText = "";
+  document.getElementById("balance").innerText = "";
+  document.getElementById("welcome").innerText = "";
+};
+
+// AUTH STATE
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) return;
+
+  isLoggedIn = true;
+
+  document.getElementById("loginCard").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
+
+  const userRef = doc(db, "users", user.uid);
+  let userSnap = await getDoc(userRef);
+
+  if (!userSnap.exists()) {
+    await setDoc(userRef, {
+      name: user.email,
+      email: user.email,
+      role: "student",
+      studentId: ""
+    });
+
+    document.getElementById("error").innerText =
+      "Profile created. Ask admin to assign your student ID.";
+    return;
+  }
+
+  const userData = userSnap.data();
+
+  document.getElementById("welcome").innerText =
+    "Welcome " + userData.name;
+
+  if (!userData.studentId) {
+    document.getElementById("error").innerText =
+      "No student ID assigned. Contact admin.";
+    return;
+  }
+
+  const studentId = userData.studentId;
+
+  // RESULTS
+  const rQuery = query(
+    collection(db, "results"),
+    where("studentId", "==", studentId)
+  );
+
+  const rSnap = await getDocs(rQuery);
+
+  const rDiv = document.getElementById("results");
+  rDiv.innerHTML = "";
+
+  rSnap.forEach(d => {
+    const r = d.data();
+    rDiv.innerHTML +=
+      r.subject + " (Term " + r.term + ") - " + r.mark + "<br>";
+  });
+
+  // FEES
+  const fQuery = query(
+    collection(db, "fees"),
+    where("studentId", "==", studentId)
+  );
+
+  const fSnap = await getDocs(fQuery);
+
+  if (!fSnap.empty) {
+    const f = fSnap.docs[0].data();
+    document.getElementById("total").innerText = f.totalFees || 0;
+    document.getElementById("paid").innerText = f.amountPaid || 0;
+    document.getElementById("balance").innerText = f.balance || 0;
+  }
+
+});
+
+// 🚨 CONFIRM EXIT
+window.addEventListener("beforeunload", (e) => {
+  if (isLoggedIn) {
+    localStorage.setItem("forceLogout", "true");
+    e.preventDefault();
+    e.returnValue = "";
+  }
+});
 
 </script>
 
