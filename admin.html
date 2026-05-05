@@ -330,12 +330,12 @@ async function loadStudents(){
 
 /* RESULTS */
 addResultBtn.onclick = async () => {
-  await addDoc(collection(db,"results"),{
-    studentId:r_studentId.value,
-    subject:subject.value,
-    term:term.value,
-    mark:mark.value
-  });
+  await setDoc(doc(db,"results", r_studentId.value + "_" + subject.value + "_" + term.value), {
+  studentId: r_studentId.value,
+  subject: subject.value,
+  term: term.value,
+  mark: mark.value
+});
   loadResults();
 };
 
@@ -399,12 +399,12 @@ addFeesBtn.onclick = async () => {
   const t = Number(total.value)||0;
   const p = Number(paid.value)||0;
 
-  await addDoc(collection(db,"fees"),{
-    studentId:f_studentId.value,
-    totalFees:t,
-    amountPaid:p,
-    balance:t-p
-  });
+  await setDoc(doc(db,"fees", f_studentId.value), {
+  studentId: f_studentId.value,
+  totalFees: t,
+  amountPaid: p,
+  balance: t - p
+});
 
   loadFees();
 };
