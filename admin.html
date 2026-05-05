@@ -266,51 +266,41 @@ updateStudentBtn.onclick = async () => {
 /* ================= RESULTS ================= */
 
 addResultBtn.onclick = async () => {
-  await addDoc(collection(db,"results"),{
-    studentId:r_studentId.value,
-    subject:subject.value,
-    term:term.value,
-    mark:mark.value
-  });
+  try {
+    await addDoc(collection(db,"results"),{
+      studentId: r_studentId.value,
+      subject: subject.value,
+      term: term.value,
+      mark: mark.value
+    });
 
-  loadResults();
-};
+    loadResults();
 
-updateResultBtn.onclick = async () => {
-  await updateDoc(doc(db,"results",rEdit),{
-    studentId:r_studentId.value,
-    subject:subject.value,
-    term:term.value,
-    mark:mark.value
-  });
-
-  loadResults();
+  } catch (e) {
+    alert("Failed to save result: " + e.message);
+  }
 };
 
 /* ================= FEES ================= */
 
 addFeesBtn.onclick = async () => {
-  await addDoc(collection(db,"fees"),{
-    studentId:f_studentId.value,
-    total:Number(total.value),
-    paid:Number(paid.value),
-    balance:Number(total.value)-Number(paid.value)
-  });
+  try {
+    const t = Number(total.value);
+    const p = Number(paid.value);
 
-  loadFees();
+    await addDoc(collection(db,"fees"),{
+      studentId: f_studentId.value,
+      total: t,
+      paid: p,
+      balance: t - p
+    });
+
+    loadFees();
+
+  } catch (e) {
+    alert("Failed to save fees: " + e.message);
+  }
 };
-
-updateFeesBtn.onclick = async () => {
-  await updateDoc(doc(db,"fees",fEdit),{
-    studentId:f_studentId.value,
-    total:Number(total.value),
-    paid:Number(paid.value),
-    balance:Number(total.value)-Number(paid.value)
-  });
-
-  loadFees();
-};
-
 /* LOADERS */
 
 async function loadStudents(){
