@@ -144,7 +144,7 @@
 <div class="navbar">
 
   <div class="logo">
-    🎓 SchoolSys Pro
+    🎓 SchInfoManSys Pro
   </div>
 
   <div class="nav-links">
@@ -156,7 +156,7 @@
 
   <div class="nav-right">
     <span class="admin-badge">Admin</span>
-    <button class="logout-btn">Logout</button>
+    <button class="logout-btn" onclick="logoutAdmin()">Logout</button>
   </div>
 
 </div>
@@ -624,7 +624,33 @@ window.showSection = (section) => {
   }
 };
 
-  
+
+
+
+
+// =======================
+// LOGOUT FUNCTION
+// =======================
+
+window.logoutAdmin = async () => {
+  try {
+    // Sign out current admin user
+    await signOut(auth);
+
+    // Show login screen again
+    document.body.innerHTML = `
+      <div id="loginGate" style="display:flex;justify-content:center;align-items:center;height:100vh;background:#eef2f7;">
+        <div style="background:white;padding:25px;border-radius:10px;width:320px;text-align:center;">
+          <h3>Admin Login</h3>
+          <p>Please refresh the page to login again</p>
+        </div>
+      </div>
+    `;
+
+  } catch (err) {
+    alert("Logout failed: " + err.message);
+  }
+};
 </script>
 
 </body>
