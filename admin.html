@@ -151,11 +151,11 @@ import {
 import {
   getFirestore,
   collection,
-  addDoc,
   getDocs,
   deleteDoc,
   doc,
-  updateDoc
+  updateDoc,
+  setDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -212,13 +212,15 @@ const studentTable = document.getElementById("studentTable");
 const resultsTable = document.getElementById("resultsTable");
 const feesTable = document.getElementById("feesTable");
 
-/* FIXED DUPLICATE CHECK */
+/* DUPLICATE CHECK */
 async function idExists(id){
   const snap = await getDocs(collection(db,"students"));
   return snap.docs.some(d => d.data().studentId === id);
 }
 
-/* STUDENT CREATE (FIXED) */
+/* =========================
+   STUDENT ADD (FIXED CORE)
+========================= */
 addStudentBtn.onclick = async () => {
 
   const id = studentId.value.trim();
@@ -232,17 +234,19 @@ addStudentBtn.onclick = async () => {
     return alert("Student ID already exists");
 
   try {
+
     const cred = await createUserWithEmailAndPassword(auth, mail, pass);
 
-    await addDoc(collection(db,"students"),{
+    // 🔥 CRITICAL FIX: UID becomes document ID
+    await setDoc(doc(db, "students", cred.user.uid), {
       uid: cred.user.uid,
-      name:name.value,
-      email:mail,
-      studentId:id,
-      password:pass,
-      age:age.value,
-      grade:grade.value,
-      class:classInput.value
+      name: name.value,
+      email: mail,
+      studentId: id,
+      password: pass,
+      age: age.value,
+      grade: grade.value,
+      class: classInput.value
     });
 
     loadStudents();
@@ -320,7 +324,7 @@ async function loadStudents(){
   });
 }
 
-/* RESULTS FIXED */
+/* RESULTS */
 addResultBtn.onclick = async () => {
   await addDoc(collection(db,"results"),{
     studentId:r_studentId.value,
@@ -341,6 +345,7 @@ updateResultBtn.onclick = async () => {
   loadResults();
 };
 
+/* RESULTS LOAD */
 async function loadResults(){
   resultsTable.innerHTML="";
   const snap=await getDocs(collection(db,"results"));
@@ -408,6 +413,7 @@ updateFeesBtn.onclick = async () => {
   loadFees();
 };
 
+/* FEES LOAD */
 async function loadFees(){
   feesTable.innerHTML="";
   const snap=await getDocs(collection(db,"fees"));
