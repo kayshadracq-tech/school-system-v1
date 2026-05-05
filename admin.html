@@ -148,10 +148,10 @@
   </div>
 
   <div class="nav-links">
-    <span class="nav-item active">Home</span>
-    <span class="nav-item">Students</span>
-    <span class="nav-item">Results</span>
-    <span class="nav-item">Fees</span>
+    <span class="nav-item active" onclick="showSection('home')">Home</span>
+<span class="nav-item" onclick="showSection('students')">Students</span>
+<span class="nav-item" onclick="showSection('results')">Results</span>
+<span class="nav-item" onclick="showSection('fees')">Fees</span>
   </div>
 
   <div class="nav-right">
@@ -579,6 +579,52 @@ loadStudents();
 loadResults();
 loadFees();
 
+
+
+
+// NAVIGATION
+window.showSection = (section) => {
+
+  // remove active highlight
+  document.querySelectorAll(".nav-item").forEach(item => {
+    item.classList.remove("active");
+  });
+
+  // highlight current
+  const map = {
+    home: 0,
+    students: 1,
+    results: 2,
+    fees: 3
+  };
+
+  document.querySelectorAll(".nav-item")[map[section]].classList.add("active");
+
+  // hide all sections
+  document.querySelectorAll(".section").forEach(s => {
+    s.style.display = "none";
+  });
+
+  // show selected
+  if (section === "home") {
+    document.querySelector("h2").style.display = "block";
+    return;
+  }
+
+  if (section === "students") {
+    document.querySelectorAll(".section")[0].style.display = "block";
+  }
+
+  if (section === "results") {
+    document.querySelectorAll(".section")[1].style.display = "block";
+  }
+
+  if (section === "fees") {
+    document.querySelectorAll(".section")[2].style.display = "block";
+  }
+};
+
+  
 </script>
 
 </body>
