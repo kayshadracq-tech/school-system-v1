@@ -145,6 +145,7 @@ import {
   getAuth,
   signInWithEmailAndPassword,
   onAuthStateChanged,
+  signOut,
   createUserWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -160,21 +161,28 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSy...",
+  apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
   authDomain: "school-system-748cf.firebaseapp.com",
-  projectId: "school-system-748cf"
+  projectId: "school-system-748cf",
+  storageBucket: "school-system-748cf.firebasestorage.app",
+  messagingSenderId: "899412742738",
+  appId: "1:899412742738:web:7dc83a50b53789b196858b"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+/* 🔴 FORCE CLEAN SESSION */
+signOut(auth);
+
 /* LOGIN */
 adminLoginBtn.onclick = async () => {
+  adminError.innerText = "";
   try {
-    await signInWithEmailAndPassword(auth, adminEmail.value, adminPass.value);
+    await signInWithEmailAndPassword(auth, adminEmail.value.trim(), adminPass.value.trim());
   } catch {
-    adminError.innerText = "Invalid login";
+    adminError.innerText = "Invalid email or password";
   }
 };
 
@@ -213,30 +221,34 @@ const studentTable = document.getElementById("studentTable");
 const resultsTable = document.getElementById("resultsTable");
 const feesTable = document.getElementById("feesTable");
 
-/* CHECK */
+/* CHECK ID */
 async function idExists(id){
   const snap = await getDocs(collection(db,"students"));
   return snap.docs.some(d => d.data().studentId === id);
 }
 
-/* STUDENTS (FIXED ROOT ISSUE) */
+/* STUDENTS */
 addStudentBtn.onclick = async () => {
 
   const id = studentId.value.trim();
   const mail = email.value.trim();
   const pass = password.value.trim();
 
-  if (!id || !mail || !pass)
-    return alert("Email, ID, password required");
+  if (!id || !mail || !pass) return alert("Email, ID, password required");
 
-  if (await idExists(id))
-    return alert("Student ID exists");
+  if (await idExists(id)) return alert("Student ID exists");
 
   try {
     const userCred = await createUserWithEmailAndPassword(auth, mail, pass);
     const uid = userCred.user.uid;
 
-    /* SAVE STUDENT TABLE */
+    await setDoc(doc(db,"users",uid),{
+      name:name.value,
+      email:mail,
+      role:"student",
+      studentId:id
+    });
+
     await addDoc(collection(db,"students"),{
       uid,
       name:name.value,
@@ -246,14 +258,6 @@ addStudentBtn.onclick = async () => {
       age:age.value,
       grade:grade.value,
       class:classInput.value
-    });
-
-    /* 🔥 CRITICAL FIX: SAVE USERS COLLECTION */
-    await setDoc(doc(db,"users",uid),{
-      name:name.value,
-      email:mail,
-      role:"student",
-      studentId:id
     });
 
     loadStudents();
@@ -301,8 +305,8 @@ async function loadStudents(){
     const action=row.children[6];
 
     const edit=document.createElement("button");
-    edit.className="edit";
     edit.textContent="Edit";
+    edit.className="edit";
     edit.onclick=()=>{
       sEdit=d.id;
       name.value=s.name;
@@ -315,8 +319,8 @@ async function loadStudents(){
     };
 
     const del=document.createElement("button");
-    del.className="delete";
     del.textContent="Delete";
+    del.className="delete";
     del.onclick=async()=>{
       await deleteDoc(doc(db,"students",d.id));
       loadStudents();
@@ -370,8 +374,8 @@ async function loadResults(){
     const action=row.children[4];
 
     const edit=document.createElement("button");
-    edit.className="edit";
     edit.textContent="Edit";
+    edit.className="edit";
     edit.onclick=()=>{
       rEdit=d.id;
       r_studentId.value=r.studentId;
@@ -381,8 +385,8 @@ async function loadResults(){
     };
 
     const del=document.createElement("button");
-    del.className="delete";
     del.textContent="Delete";
+    del.className="delete";
     del.onclick=async()=>{
       await deleteDoc(doc(db,"results",d.id));
       loadResults();
@@ -444,8 +448,8 @@ async function loadFees(){
     const action=row.children[4];
 
     const edit=document.createElement("button");
-    edit.className="edit";
     edit.textContent="Edit";
+    edit.className="edit";
     edit.onclick=()=>{
       fEdit=d.id;
       f_studentId.value=f.studentId;
@@ -454,8 +458,8 @@ async function loadFees(){
     };
 
     const del=document.createElement("button");
-    del.className="delete";
     del.textContent="Delete";
+    del.className="delete";
     del.onclick=async()=>{
       await deleteDoc(doc(db,"fees",d.id));
       loadFees();
