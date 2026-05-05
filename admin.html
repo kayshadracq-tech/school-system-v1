@@ -4,6 +4,47 @@
   <title>Admin Dashboard</title>
 
   <style>
+
+
+/* NAVBAR */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1e3a8a;
+  padding: 12px 20px;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar .logo {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  margin: 0 10px;
+  font-size: 14px;
+}
+
+.nav-links a:hover {
+  text-decoration: underline;
+}
+
+.nav-logout {
+  background: red;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+    
     body { font-family: Arial; background:#eef2f7; padding:20px; }
     h2 { text-align:center; display:none; }
 
@@ -56,6 +97,19 @@
 </head>
 
 <body>
+  <!-- NAVIGATION BAR -->
+<div class="navbar">
+  <div class="logo">🏫 School Information Management System(SIMS)</div>
+
+  <div class="nav-links">
+    <a href="admin.html">Home</a>
+    <a href="student.html">Students Portal</a>
+    <a href="index.html">Main Page</a>
+  </div>
+
+  <button onclick="logout()" class="nav-logout">Logout</button>
+</div>
+  
 
 <h2>Admin Dashboard</h2>
 
