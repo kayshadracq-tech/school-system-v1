@@ -4,66 +4,6 @@
   <title>Admin Dashboard</title>
 
   <style>
-
-
-
-
-    /* NAVBAR */
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  background: linear-gradient(135deg, #1e3a8a, #2563eb);
-  padding: 14px 20px;
-  color: white;
-
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-/* LOGO */
-.logo {
-  font-size: 18px;
-  font-weight: bold;
-}
-
-/* LINKS */
-.nav-links {
-  display: flex;
-  gap: 18px;
-}
-
-.nav-links span {
-  cursor: pointer;
-  padding: 6px 10px;
-  border-radius: 6px;
-  transition: 0.3s;
-}
-
-.nav-links span:hover {
-  background: rgba(255,255,255,0.2);
-}
-
-/* LOGOUT BUTTON */
-.logout-btn {
-  background: #ef4444;
-  border: none;
-  padding: 7px 14px;
-  color: white;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.logout-btn:hover {
-  background: #dc2626;
-}
-
-    
     body { font-family: Arial; background:#eef2f7; padding:20px; }
     h2 { text-align:center; display:none; }
 
@@ -117,24 +57,7 @@
 
 <body>
 
-
-<!-- NAVBAR -->
-<div style="background:#1e3a8a; color:white; padding:12px; display:flex; justify-content:space-between; align-items:center;">
-
-  <div style="font-weight:bold;">
-    School System Admin
-  </div>
-
-  <div>
-    <span style="margin-right:10px;">Home</span>
-    <span style="margin-right:10px;">Students</span>
-    <span style="margin-right:10px;">Results</span>
-    <span>Fees</span>
-  </div>
-
-</div>
-  
-  
+<h2>Admin Dashboard</h2>
 
 <!-- LOGIN -->
 <div id="loginGate">
@@ -269,7 +192,7 @@ onAuthStateChanged(auth, (user) => {
 
   loginGate.remove();
   document.querySelector("h2").style.display = "block";
-  document.querySelectorAll(".section").forEach(s => s.style.display = "none");
+  document.querySelectorAll(".section").forEach(s => s.style.display="block");
 });
 
 /* STATES */
@@ -550,40 +473,6 @@ loadStudents();
 loadResults();
 loadFees();
 
-
-
-
-  
-
-window.showSection = (section) => {
-
-  // hide all sections
-  document.querySelectorAll(".section").forEach(s => {
-    s.style.display = "none";
-  });
-
-  // HOME
-  if (section === "home") {
-    document.querySelector("h2").style.display = "block";
-    return;
-  }
-
-  // STUDENTS
-  if (section === "students") {
-    document.querySelectorAll(".section")[0].style.display = "block";
-  }
-
-  // RESULTS
-  if (section === "results") {
-    document.querySelectorAll(".section")[1].style.display = "block";
-  }
-
-  // FEES
-  if (section === "fees") {
-    document.querySelectorAll(".section")[2].style.display = "block";
-  }
-};
-    
 </script>
 
 </body>
