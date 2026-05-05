@@ -28,29 +28,15 @@
     table { width:100%; border-collapse:collapse; margin-top:10px; }
     th { background:#007bff; color:white; padding:10px; }
     td { padding:8px; text-align:center; }
-    tr:nth-child(even){ background:#f2f2f2; }
 
     #loginGate {
       position:fixed;
-      top:0; left:0;
       width:100%; height:100%;
       background:#eef2f7;
       display:flex;
       justify-content:center;
       align-items:center;
-      z-index:9999;
     }
-
-    .loginBox {
-      background:white;
-      padding:25px;
-      border-radius:10px;
-      width:320px;
-      box-shadow:0 2px 10px rgba(0,0,0,0.2);
-      text-align:center;
-    }
-
-    .error { color:red; margin-top:10px; }
   </style>
 </head>
 
@@ -59,12 +45,12 @@
 <h2>Admin Dashboard</h2>
 
 <div id="loginGate">
-  <div class="loginBox">
+  <div>
     <h3>Admin Login</h3>
     <input id="adminEmail" placeholder="Email">
     <input id="adminPass" type="password" placeholder="Password">
-    <button id="adminLoginBtn" class="add">Login</button>
-    <p id="adminError" class="error"></p>
+    <button id="adminLoginBtn">Login</button>
+    <p id="adminError" style="color:red;"></p>
   </div>
 </div>
 
@@ -74,7 +60,6 @@
   <input id="name" placeholder="Name">
   <input id="email" placeholder="Email">
   <input id="studentId" placeholder="Student ID">
-  <input id="password" placeholder="Password">
   <input id="age" placeholder="Age">
   <input id="grade" placeholder="Grade">
   <input id="className" placeholder="Class">
@@ -99,7 +84,6 @@ import {
   getAuth,
   signInWithEmailAndPassword,
   onAuthStateChanged,
-  createUserWithEmailAndPassword,
   signOut
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -115,24 +99,18 @@ import {
 
 const ADMIN_EMAIL = "shadracqkasonde@gmail.com";
 
-/* STORE ADMIN CREDENTIALS */
-let ADMIN_PASSWORD = "";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
+const app = initializeApp({
+  apiKey: "AIzaSy...",
   authDomain: "school-system-748cf.firebaseapp.com",
   projectId: "school-system-748cf"
-};
+});
 
-const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
 /* LOGIN */
 adminLoginBtn.onclick = async () => {
   try {
-    ADMIN_PASSWORD = adminPass.value;
-
     const cred = await signInWithEmailAndPassword(auth, adminEmail.value, adminPass.value);
 
     if (cred.user.email !== ADMIN_EMAIL) {
@@ -147,16 +125,11 @@ adminLoginBtn.onclick = async () => {
 
 /* AUTH */
 onAuthStateChanged(auth, (user) => {
-  if (!user) return;
-
-  if (user.email !== ADMIN_EMAIL) {
-    signOut(auth);
-    return;
-  }
+  if (!user || user.email !== ADMIN_EMAIL) return;
 
   loginGate.remove();
-  document.querySelector("h2").style.display = "block";
-  document.querySelectorAll(".section").forEach(s => s.style.display="block");
+  document.querySelector("h2").style.display="block";
+  document.querySelector(".section").style.display="block";
 });
 
 /* STATE */
@@ -166,25 +139,19 @@ let sEdit=null;
 const name = document.getElementById("name");
 const email = document.getElementById("email");
 const studentId = document.getElementById("studentId");
-const password = document.getElementById("password");
 const age = document.getElementById("age");
 const grade = document.getElementById("grade");
 const classInput = document.getElementById("className");
-
 const studentTable = document.getElementById("studentTable");
 
-/* ADD FIXED (CRITICAL) */
+/* ✅ ADD STUDENT (FIXED) */
 addStudentBtn.onclick = async () => {
 
-  if (!email.value || !password.value || !studentId.value)
-    return alert("Email, password and ID required");
+  if (!studentId.value) return alert("Student ID required");
 
   try {
 
-    const cred = await createUserWithEmailAndPassword(auth, email.value, password.value);
-
-    await setDoc(doc(db,"students",cred.user.uid),{
-      uid: cred.user.uid,
+    await setDoc(doc(db,"students",studentId.value),{
       name:name.value,
       email:email.value,
       studentId:studentId.value,
@@ -193,11 +160,7 @@ addStudentBtn.onclick = async () => {
       class:classInput.value
     });
 
-    /* 🔥 RESTORE ADMIN SESSION */
-    await signOut(auth);
-    await signInWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
-
-    alert("Student added");
+    alert("Student saved to Firestore");
     loadStudents();
 
   } catch(err){
@@ -207,12 +170,11 @@ addStudentBtn.onclick = async () => {
 
 /* UPDATE */
 updateStudentBtn.onclick = async () => {
-  if (!sEdit) return alert("Select student first");
+  if (!sEdit) return alert("Select student");
 
   await updateDoc(doc(db,"students",sEdit),{
     name:name.value,
     email:email.value,
-    studentId:studentId.value,
     age:age.value,
     grade:grade.value,
     class:classInput.value
@@ -245,7 +207,6 @@ async function loadStudents(){
 
     const edit=document.createElement("button");
     edit.textContent="Edit";
-    edit.className="edit";
     edit.onclick=()=>{
       sEdit=d.id;
       name.value=s.name;
@@ -258,7 +219,6 @@ async function loadStudents(){
 
     const del=document.createElement("button");
     del.textContent="Delete";
-    del.className="delete";
     del.onclick=async()=>{
       await deleteDoc(doc(db,"students",d.id));
       loadStudents();
@@ -271,7 +231,6 @@ async function loadStudents(){
   });
 }
 
-/* INIT */
 loadStudents();
 
 </script>
