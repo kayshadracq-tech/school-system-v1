@@ -279,8 +279,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-/* 🔴 FORCE CLEAN SESSION */
-signOut(auth);
 
 /* LOGIN */
 adminLoginBtn.onclick = async () => {
@@ -362,13 +360,21 @@ addStudentBtn.onclick = async () => {
       name: name.value,
       email: mail,
       studentId: id,
-      password: pass,
       age: age.value,
       grade: grade.value,
       class: classInput.value
     });
 
     loadStudents();
+
+    // clear form after adding
+name.value = "";
+email.value = "";
+studentId.value = "";
+password.value = "";
+age.value = "";
+grade.value = "";
+classInput.value = "";
 
   } catch(err){
     alert(err.message);
@@ -383,7 +389,6 @@ updateStudentBtn.onclick = async () => {
     name:name.value,
     email:email.value,
     studentId:studentId.value,
-    password:password.value,
     age:age.value,
     grade:grade.value,
     class:classInput.value
