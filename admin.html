@@ -368,27 +368,28 @@ async function loadResults(){
 
     const action=row.children[4];
 
-    const edit=document.createElement("button");
-    edit.textContent="Edit";
-    edit.className="edit";
-    edit.onclick=()=>{
-      rEdit=d.id;
-      r_studentId.value=r.studentId;
-      subject.value=r.subject;
-      term.value=r.term;
-      mark.value=r.mark;
-    };
+    const edit = document.createElement("button");
+edit.textContent = "Edit";
+edit.className = "edit";
+edit.onclick = () => {
+  rEdit = d.id;
 
-    const del=document.createElement("button");
-    del.textContent="Delete";
-    del.className="delete";
-    del.onclick=async()=>{
-      await deleteDoc(doc(db,"results",d.id));
-      loadResults();
-    };
+  r_studentId.value = r.studentId;
+  subject.value = r.subject;
+  term.value = r.term;
+  mark.value = r.mark;
+};
 
-    action.appendChild(edit);
-    action.appendChild(del);
+const del = document.createElement("button");
+del.textContent = "Delete";
+del.className = "delete";
+del.onclick = async () => {
+  await deleteDoc(doc(db, "results", d.id));
+  loadResults();
+};
+
+action.appendChild(edit);
+action.appendChild(del);
 
     resultsTable.appendChild(row);
   });
