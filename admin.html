@@ -160,7 +160,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
+  apiKey: "AIzaSy...",
   authDomain: "school-system-748cf.firebaseapp.com",
   projectId: "school-system-748cf"
 };
@@ -178,7 +178,7 @@ adminLoginBtn.onclick = async () => {
   }
 };
 
-/* SHOW DASHBOARD */
+/* AUTH */
 onAuthStateChanged(auth, (user) => {
   if (!user) return;
 
@@ -213,13 +213,13 @@ const studentTable = document.getElementById("studentTable");
 const resultsTable = document.getElementById("resultsTable");
 const feesTable = document.getElementById("feesTable");
 
-/* CHECK ID */
+/* CHECK */
 async function idExists(id){
   const snap = await getDocs(collection(db,"students"));
   return snap.docs.some(d => d.data().studentId === id);
 }
 
-/* STUDENTS */
+/* STUDENTS (FIXED ROOT ISSUE) */
 addStudentBtn.onclick = async () => {
 
   const id = studentId.value.trim();
@@ -236,14 +236,7 @@ addStudentBtn.onclick = async () => {
     const userCred = await createUserWithEmailAndPassword(auth, mail, pass);
     const uid = userCred.user.uid;
 
-    // 🔥 LINK USER → STUDENT (CRITICAL FIX)
-    await setDoc(doc(db,"users",uid),{
-      name: name.value,
-      email: mail,
-      role: "student",
-      studentId: id
-    });
-
+    /* SAVE STUDENT TABLE */
     await addDoc(collection(db,"students"),{
       uid,
       name:name.value,
@@ -255,7 +248,13 @@ addStudentBtn.onclick = async () => {
       class:classInput.value
     });
 
-    alert("Student added successfully");
+    /* 🔥 CRITICAL FIX: SAVE USERS COLLECTION */
+    await setDoc(doc(db,"users",uid),{
+      name:name.value,
+      email:mail,
+      role:"student",
+      studentId:id
+    });
 
     loadStudents();
 
@@ -302,8 +301,8 @@ async function loadStudents(){
     const action=row.children[6];
 
     const edit=document.createElement("button");
-    edit.textContent="Edit";
     edit.className="edit";
+    edit.textContent="Edit";
     edit.onclick=()=>{
       sEdit=d.id;
       name.value=s.name;
@@ -316,8 +315,8 @@ async function loadStudents(){
     };
 
     const del=document.createElement("button");
-    del.textContent="Delete";
     del.className="delete";
+    del.textContent="Delete";
     del.onclick=async()=>{
       await deleteDoc(doc(db,"students",d.id));
       loadStudents();
@@ -371,8 +370,8 @@ async function loadResults(){
     const action=row.children[4];
 
     const edit=document.createElement("button");
-    edit.textContent="Edit";
     edit.className="edit";
+    edit.textContent="Edit";
     edit.onclick=()=>{
       rEdit=d.id;
       r_studentId.value=r.studentId;
@@ -382,8 +381,8 @@ async function loadResults(){
     };
 
     const del=document.createElement("button");
-    del.textContent="Delete";
     del.className="delete";
+    del.textContent="Delete";
     del.onclick=async()=>{
       await deleteDoc(doc(db,"results",d.id));
       loadResults();
@@ -445,8 +444,8 @@ async function loadFees(){
     const action=row.children[4];
 
     const edit=document.createElement("button");
-    edit.textContent="Edit";
     edit.className="edit";
+    edit.textContent="Edit";
     edit.onclick=()=>{
       fEdit=d.id;
       f_studentId.value=f.studentId;
@@ -455,8 +454,8 @@ async function loadFees(){
     };
 
     const del=document.createElement("button");
-    del.textContent="Delete";
     del.className="delete";
+    del.textContent="Delete";
     del.onclick=async()=>{
       await deleteDoc(doc(db,"fees",d.id));
       loadFees();
