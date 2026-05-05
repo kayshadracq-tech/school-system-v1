@@ -95,7 +95,7 @@
   </table>
 </div>
 
-<!-- RESULTS -->
+<!-- RESULTS (RESTORED PROPERLY) -->
 <div class="section">
   <h3>Results</h3>
 
@@ -164,7 +164,7 @@ onAuthStateChanged(auth, (user) => {
   document.querySelectorAll(".section").forEach(s => s.style.display="block");
 });
 
-/* STATE */
+/* STATES */
 let sEdit = null;
 let rEdit = null;
 
@@ -182,11 +182,10 @@ const subject = document.getElementById("subject");
 const term = document.getElementById("term");
 const mark = document.getElementById("mark");
 
-/* TABLES */
 const studentTable = document.getElementById("studentTable");
 const resultsTable = document.getElementById("resultsTable");
 
-/* CHECK DUPLICATE */
+/* CHECK ID */
 async function idExists(id){
   const snap = await getDocs(collection(db,"students"));
   return snap.docs.some(d => d.data().studentId === id);
@@ -209,7 +208,7 @@ addStudentBtn.onclick = async () => {
     const userCred = await createUserWithEmailAndPassword(auth, mail, pass);
 
     await addDoc(collection(db,"students"),{
-      uid: userCred.user.uid,
+      uid:userCred.user.uid,
       name:name.value,
       email:mail,
       studentId:id,
@@ -243,7 +242,7 @@ updateStudentBtn.onclick = async () => {
   loadStudents();
 };
 
-/* STUDENTS LOAD */
+/* LOAD STUDENTS */
 async function loadStudents(){
   studentTable.innerHTML="";
   const snap = await getDocs(collection(db,"students"));
@@ -295,8 +294,10 @@ async function loadStudents(){
 
 /* RESULTS */
 addResultBtn.onclick = async () => {
+  if (!r_studentId.value) return alert("Student ID required");
+
   await addDoc(collection(db,"results"),{
-    studentId:r_studentId.value,
+    studentId:r_studentId.value.trim(),
     subject:subject.value,
     term:term.value,
     mark:mark.value
