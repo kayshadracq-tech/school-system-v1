@@ -553,29 +553,7 @@ loadFees();
 
 
 
-  window.showSection = (section) => {
-
-  document.querySelectorAll(".section").forEach(s => {
-    s.style.display = "none";
-  });
-
-  if (section === "home") {
-    alert("Home clicked");
-  }
-
-  if (section === "students") {
-    studentTable.closest(".section").style.display = "block";
-  }
-
-  if (section === "results") {
-    resultsTable.closest(".section").style.display = "block";
-  }
-
-  if (section === "fees") {
-    feesTable.closest(".section").style.display = "block";
-  }
-};
-
+  
 
 window.showSection = (section) => {
 
