@@ -117,7 +117,7 @@
   </table>
 </div>
 
-<!-- FEES (RESTORED FULLY) -->
+<!-- FEES -->
 <div class="section">
   <h3>Fees</h3>
 
@@ -177,6 +177,7 @@ adminLoginBtn.onclick = async () => {
   }
 };
 
+/* AUTH */
 onAuthStateChanged(auth, (user) => {
   if (!user) return;
 
@@ -185,7 +186,7 @@ onAuthStateChanged(auth, (user) => {
   document.querySelectorAll(".section").forEach(s => s.style.display="block");
 });
 
-/* STATES */
+/* STATE */
 let sEdit=null, rEdit=null, fEdit=null;
 
 /* INPUTS */
@@ -211,14 +212,15 @@ const studentTable = document.getElementById("studentTable");
 const resultsTable = document.getElementById("resultsTable");
 const feesTable = document.getElementById("feesTable");
 
-/* CHECK */
+/* FIXED DUPLICATE CHECK */
 async function idExists(id){
   const snap = await getDocs(collection(db,"students"));
   return snap.docs.some(d => d.data().studentId === id);
 }
 
-/* STUDENTS */
+/* STUDENT CREATE (FIXED) */
 addStudentBtn.onclick = async () => {
+
   const id = studentId.value.trim();
   const mail = email.value.trim();
   const pass = password.value.trim();
@@ -229,20 +231,25 @@ addStudentBtn.onclick = async () => {
   if (await idExists(id))
     return alert("Student ID already exists");
 
-  const userCred = await createUserWithEmailAndPassword(auth, mail, pass);
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, mail, pass);
 
-  await addDoc(collection(db,"students"),{
-    uid:userCred.user.uid,
-    name:name.value,
-    email:mail,
-    studentId:id,
-    password:pass,
-    age:age.value,
-    grade:grade.value,
-    class:classInput.value
-  });
+    await addDoc(collection(db,"students"),{
+      uid: cred.user.uid,
+      name:name.value,
+      email:mail,
+      studentId:id,
+      password:pass,
+      age:age.value,
+      grade:grade.value,
+      class:classInput.value
+    });
 
-  loadStudents();
+    loadStudents();
+
+  } catch(err){
+    alert(err.message);
+  }
 };
 
 /* UPDATE STUDENT */
@@ -273,20 +280,20 @@ async function loadStudents(){
 
     const row=document.createElement("tr");
     row.innerHTML=`
-      <td>${s.name}</td>
-      <td>${s.email}</td>
-      <td>${s.studentId}</td>
-      <td>${s.age}</td>
-      <td>${s.grade}</td>
-      <td>${s.class}</td>
+      <td>${s.name||""}</td>
+      <td>${s.email||""}</td>
+      <td>${s.studentId||""}</td>
+      <td>${s.age||""}</td>
+      <td>${s.grade||""}</td>
+      <td>${s.class||""}</td>
       <td></td>
     `;
 
     const action=row.children[6];
 
     const edit=document.createElement("button");
-    edit.className="edit";
     edit.textContent="Edit";
+    edit.className="edit";
     edit.onclick=()=>{
       sEdit=d.id;
       name.value=s.name;
@@ -299,8 +306,8 @@ async function loadStudents(){
     };
 
     const del=document.createElement("button");
-    del.className="delete";
     del.textContent="Delete";
+    del.className="delete";
     del.onclick=async()=>{
       await deleteDoc(doc(db,"students",d.id));
       loadStudents();
@@ -313,7 +320,7 @@ async function loadStudents(){
   });
 }
 
-/* RESULTS */
+/* RESULTS FIXED */
 addResultBtn.onclick = async () => {
   await addDoc(collection(db,"results"),{
     studentId:r_studentId.value,
@@ -331,7 +338,6 @@ updateResultBtn.onclick = async () => {
     term:term.value,
     mark:mark.value
   });
-  rEdit=null;
   loadResults();
 };
 
@@ -354,8 +360,8 @@ async function loadResults(){
     const action=row.children[4];
 
     const edit=document.createElement("button");
-    edit.className="edit";
     edit.textContent="Edit";
+    edit.className="edit";
     edit.onclick=()=>{
       rEdit=d.id;
       r_studentId.value=r.studentId;
@@ -365,8 +371,8 @@ async function loadResults(){
     };
 
     const del=document.createElement("button");
-    del.className="delete";
     del.textContent="Delete";
+    del.className="delete";
     del.onclick=async()=>{
       await deleteDoc(doc(db,"results",d.id));
       loadResults();
@@ -381,31 +387,24 @@ async function loadResults(){
 
 /* FEES */
 addFeesBtn.onclick = async () => {
-  const t = Number(total.value)||0;
-  const p = Number(paid.value)||0;
-
   await addDoc(collection(db,"fees"),{
     studentId:f_studentId.value,
-    totalFees:t,
-    amountPaid:p,
-    balance:t-p
+    totalFees:Number(total.value)||0,
+    amountPaid:Number(paid.value)||0,
+    balance:(Number(total.value)||0)-(Number(paid.value)||0)
   });
 
   loadFees();
 };
 
 updateFeesBtn.onclick = async () => {
-  const t = Number(total.value)||0;
-  const p = Number(paid.value)||0;
-
   await updateDoc(doc(db,"fees",fEdit),{
     studentId:f_studentId.value,
-    totalFees:t,
-    amountPaid:p,
-    balance:t-p
+    totalFees:Number(total.value)||0,
+    amountPaid:Number(paid.value)||0,
+    balance:(Number(total.value)||0)-(Number(paid.value)||0)
   });
 
-  fEdit=null;
   loadFees();
 };
 
@@ -428,8 +427,8 @@ async function loadFees(){
     const action=row.children[4];
 
     const edit=document.createElement("button");
-    edit.className="edit";
     edit.textContent="Edit";
+    edit.className="edit";
     edit.onclick=()=>{
       fEdit=d.id;
       f_studentId.value=f.studentId;
@@ -438,8 +437,8 @@ async function loadFees(){
     };
 
     const del=document.createElement("button");
-    del.className="delete";
     del.textContent="Delete";
+    del.className="delete";
     del.onclick=async()=>{
       await deleteDoc(doc(db,"fees",d.id));
       loadFees();
