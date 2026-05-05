@@ -6,42 +6,61 @@
   <style>
 
 
-/* NAVBAR */
+
+
+    /* NAVBAR */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #1e3a8a;
-  padding: 12px 20px;
+
+  background: linear-gradient(135deg, #1e3a8a, #2563eb);
+  padding: 14px 20px;
   color: white;
+
   position: sticky;
   top: 0;
   z-index: 1000;
+
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-.navbar .logo {
-  font-weight: bold;
+/* LOGO */
+.logo {
   font-size: 18px;
+  font-weight: bold;
 }
 
-.nav-links a {
-  color: white;
-  text-decoration: none;
-  margin: 0 10px;
-  font-size: 14px;
+/* LINKS */
+.nav-links {
+  display: flex;
+  gap: 18px;
 }
 
-.nav-links a:hover {
-  text-decoration: underline;
-}
-
-.nav-logout {
-  background: red;
-  color: white;
-  border: none;
-  padding: 6px 12px;
+.nav-links span {
   cursor: pointer;
-  border-radius: 5px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: 0.3s;
+}
+
+.nav-links span:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* LOGOUT BUTTON */
+.logout-btn {
+  background: #ef4444;
+  border: none;
+  padding: 7px 14px;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.logout-btn:hover {
+  background: #dc2626;
 }
 
     
@@ -97,21 +116,25 @@
 </head>
 
 <body>
-  <!-- NAVIGATION BAR -->
-<div class="navbar">
-  <div class="logo">🏫 School Information Management System(SIMS)</div>
 
-  <div class="nav-links">
-    <a href="admin.html">Home</a>
-    <a href="student.html">Students Portal</a>
-    <a href="index.html">Main Page</a>
+
+<!-- NAVBAR -->
+<div style="background:#1e3a8a; color:white; padding:12px; display:flex; justify-content:space-between; align-items:center;">
+
+  <div style="font-weight:bold;">
+    School System Admin
   </div>
 
-  <button onclick="logout()" class="nav-logout">Logout</button>
+  <div>
+    <span style="margin-right:10px;">Home</span>
+    <span style="margin-right:10px;">Students</span>
+    <span style="margin-right:10px;">Results</span>
+    <span>Fees</span>
+  </div>
+
 </div>
   
-
-<h2>Admin Dashboard</h2>
+  
 
 <!-- LOGIN -->
 <div id="loginGate">
@@ -246,7 +269,7 @@ onAuthStateChanged(auth, (user) => {
 
   loginGate.remove();
   document.querySelector("h2").style.display = "block";
-  document.querySelectorAll(".section").forEach(s => s.style.display="block");
+  document.querySelectorAll(".section").forEach(s => s.style.display = "none");
 });
 
 /* STATES */
@@ -527,6 +550,62 @@ loadStudents();
 loadResults();
 loadFees();
 
+
+
+
+  window.showSection = (section) => {
+
+  document.querySelectorAll(".section").forEach(s => {
+    s.style.display = "none";
+  });
+
+  if (section === "home") {
+    alert("Home clicked");
+  }
+
+  if (section === "students") {
+    studentTable.closest(".section").style.display = "block";
+  }
+
+  if (section === "results") {
+    resultsTable.closest(".section").style.display = "block";
+  }
+
+  if (section === "fees") {
+    feesTable.closest(".section").style.display = "block";
+  }
+};
+
+
+window.showSection = (section) => {
+
+  // HIDE ALL SECTIONS FIRST
+  document.querySelectorAll(".section").forEach(s => {
+    s.style.display = "none";
+  });
+
+  // HOME SECTION (simple dashboard view)
+  if (section === "home") {
+    document.querySelector("h2").style.display = "block";
+    return;
+  }
+
+  // SHOW STUDENTS
+  if (section === "students") {
+    studentTable.closest(".section").style.display = "block";
+  }
+
+  // SHOW RESULTS
+  if (section === "results") {
+    resultsTable.closest(".section").style.display = "block";
+  }
+
+  // SHOW FEES
+  if (section === "fees") {
+    feesTable.closest(".section").style.display = "block";
+  }
+};
+    
 </script>
 
 </body>
