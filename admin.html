@@ -233,20 +233,43 @@ const feesTable = document.getElementById("feesTable");
 /* ================= STUDENTS ================= */
 
 addStudentBtn.onclick = async () => {
-  const cred = await createUserWithEmailAndPassword(auth, email.value, password.value);
 
-  await setDoc(doc(db,"students",cred.user.uid),{
-    uid:cred.user.uid,
-    name:name.value,
-    email:email.value,
-    studentId:studentId.value,
-    password:password.value,
-    age:age.value,
-    grade:grade.value,
-    class:classInput.value
-  });
+  const id = studentId.value.trim();
+  const mail = email.value.trim();
+  const pass = password.value.trim();
 
-  loadStudents();
+  if (!id || !mail || !pass) {
+    alert("Email, ID, password required");
+    return;
+  }
+
+  try {
+    // 1. Create auth user
+    const cred = await createUserWithEmailAndPassword(auth, mail, pass);
+
+    const uid = cred.user.uid;
+
+    // 2. FORCE Firestore write (THIS IS THE FIX)
+    await setDoc(doc(db, "students", uid), {
+      uid: uid,
+      name: name.value,
+      email: mail,
+      studentId: id,
+      password: pass,
+      age: age.value,
+      grade: grade.value,
+      class: classInput.value,
+      createdAt: new Date().toISOString()
+    });
+
+    console.log("Student saved to Firestore:", uid);
+
+    loadStudents();
+
+  } catch (err) {
+    console.error("ERROR:", err);
+    alert(err.message);
+  }
 };
 
 updateStudentBtn.onclick = async () => {
