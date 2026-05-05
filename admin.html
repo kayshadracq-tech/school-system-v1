@@ -155,7 +155,7 @@
   </div>
 
   <div class="nav-right">
-    <span class="admin-badge">Admin</span>
+    <span class="admin-badge" id="adminName">Admin</span>
     <button class="logout-btn" onclick="logoutAdmin()">Logout</button>
   </div>
 
@@ -296,9 +296,17 @@ adminLoginBtn.onclick = async () => {
 onAuthStateChanged(auth, (user) => {
   if (!user) return;
 
+  // show admin email
+  document.getElementById("adminName").innerText = user.email;
+
   loginGate.remove();
   document.querySelector("h2").style.display = "block";
-  document.querySelectorAll(".section").forEach(s => s.style.display="block");
+
+  // hide all sections first
+  document.querySelectorAll(".section").forEach(s => s.style.display = "none");
+
+  // show only home
+  showSection("home");
 });
 
 /* STATES */
