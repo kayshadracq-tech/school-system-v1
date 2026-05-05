@@ -117,27 +117,6 @@
   </table>
 </div>
 
-<!-- FEES -->
-<div class="section">
-  <h3>Fees</h3>
-
-  <input id="f_studentId" placeholder="Student ID">
-  <input id="total" placeholder="Total Fees">
-  <input id="paid" placeholder="Paid">
-
-  <button id="addFeesBtn" class="add">Add</button>
-  <button id="updateFeesBtn" class="update">Update</button>
-
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th><th>Total</th><th>Paid</th><th>Balance</th><th>Action</th>
-      </tr>
-    </thead>
-    <tbody id="feesTable"></tbody>
-  </table>
-</div>
-
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -145,7 +124,7 @@ import {
   getAuth,
   signInWithEmailAndPassword,
   onAuthStateChanged,
-  signOut
+  createUserWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import {
@@ -155,9 +134,7 @@ import {
   getDocs,
   deleteDoc,
   doc,
-  updateDoc,
-  query,
-  where
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -173,9 +150,9 @@ const auth = getAuth(app);
 /* LOGIN */
 adminLoginBtn.onclick = async () => {
   try {
-    await signInWithEmailAndPassword(auth, adminEmail.value.trim(), adminPass.value.trim());
-  } catch (e) {
-    adminError.innerText = e.message;
+    await signInWithEmailAndPassword(auth, adminEmail.value, adminPass.value);
+  } catch {
+    adminError.innerText = "Invalid login";
   }
 };
 
@@ -187,14 +164,32 @@ onAuthStateChanged(auth, (user) => {
   document.querySelectorAll(".section").forEach(s => s.style.display="block");
 });
 
-/* STATES */
-let sEdit=null, rEdit=null, fEdit=null;
+/* STATE */
+let sEdit = null;
+let rEdit = null;
 
-/* CHECK ID */
+/* INPUTS */
+const name = document.getElementById("name");
+const email = document.getElementById("email");
+const studentId = document.getElementById("studentId");
+const password = document.getElementById("password");
+const age = document.getElementById("age");
+const grade = document.getElementById("grade");
+const classInput = document.getElementById("className");
+
+const r_studentId = document.getElementById("r_studentId");
+const subject = document.getElementById("subject");
+const term = document.getElementById("term");
+const mark = document.getElementById("mark");
+
+/* TABLES */
+const studentTable = document.getElementById("studentTable");
+const resultsTable = document.getElementById("resultsTable");
+
+/* CHECK DUPLICATE */
 async function idExists(id){
-  const q = query(collection(db,"students"), where("studentId","==",id));
-  const snap = await getDocs(q);
-  return !snap.empty;
+  const snap = await getDocs(collection(db,"students"));
+  return snap.docs.some(d => d.data().studentId === id);
 }
 
 /* STUDENTS */
@@ -211,21 +206,18 @@ addStudentBtn.onclick = async () => {
     return alert("Student ID already exists");
 
   try {
-
-    // 🔴 IMPORTANT FIX: DO NOT USE createUserWithEmailAndPassword HERE
-    // It logs out admin. We only store data.
+    const userCred = await createUserWithEmailAndPassword(auth, mail, pass);
 
     await addDoc(collection(db,"students"),{
+      uid: userCred.user.uid,
       name:name.value,
       email:mail,
       studentId:id,
       password:pass,
       age:age.value,
       grade:grade.value,
-      class:className.value
+      class:classInput.value
     });
-
-    alert("Student added");
 
     loadStudents();
 
@@ -244,13 +236,14 @@ updateStudentBtn.onclick = async () => {
     password:password.value,
     age:age.value,
     grade:grade.value,
-    class:className.value
+    class:classInput.value
   });
 
   sEdit=null;
   loadStudents();
 };
 
+/* STUDENTS LOAD */
 async function loadStudents(){
   studentTable.innerHTML="";
   const snap = await getDocs(collection(db,"students"));
@@ -260,20 +253,20 @@ async function loadStudents(){
 
     const row=document.createElement("tr");
     row.innerHTML=`
-      <td>${s.name||""}</td>
-      <td>${s.email||""}</td>
-      <td>${s.studentId||""}</td>
-      <td>${s.age||""}</td>
-      <td>${s.grade||""}</td>
-      <td>${s.class||""}</td>
+      <td>${s.name}</td>
+      <td>${s.email}</td>
+      <td>${s.studentId}</td>
+      <td>${s.age}</td>
+      <td>${s.grade}</td>
+      <td>${s.class}</td>
       <td></td>
     `;
 
     const action=row.children[6];
 
     const edit=document.createElement("button");
-    edit.className="edit";
     edit.textContent="Edit";
+    edit.className="edit";
     edit.onclick=()=>{
       sEdit=d.id;
       name.value=s.name;
@@ -282,12 +275,12 @@ async function loadStudents(){
       password.value=s.password;
       age.value=s.age;
       grade.value=s.grade;
-      className.value=s.class;
+      classInput.value=s.class;
     };
 
     const del=document.createElement("button");
-    del.className="delete";
     del.textContent="Delete";
+    del.className="delete";
     del.onclick=async()=>{
       await deleteDoc(doc(db,"students",d.id));
       loadStudents();
@@ -300,7 +293,7 @@ async function loadStudents(){
   });
 }
 
-/* RESULTS + FEES UNCHANGED */
+/* RESULTS */
 addResultBtn.onclick = async () => {
   await addDoc(collection(db,"results"),{
     studentId:r_studentId.value,
@@ -308,6 +301,7 @@ addResultBtn.onclick = async () => {
     term:term.value,
     mark:mark.value
   });
+
   loadResults();
 };
 
@@ -344,8 +338,8 @@ async function loadResults(){
     const action=row.children[4];
 
     const edit=document.createElement("button");
-    edit.className="edit";
     edit.textContent="Edit";
+    edit.className="edit";
     edit.onclick=()=>{
       rEdit=d.id;
       r_studentId.value=r.studentId;
@@ -355,8 +349,8 @@ async function loadResults(){
     };
 
     const del=document.createElement("button");
-    del.className="delete";
     del.textContent="Delete";
+    del.className="delete";
     del.onclick=async()=>{
       await deleteDoc(doc(db,"results",d.id));
       loadResults();
@@ -369,84 +363,9 @@ async function loadResults(){
   });
 }
 
-addFeesBtn.onclick = async () => {
-  const t = Number(total.value)||0;
-  const p = Number(paid.value)||0;
-
-  await addDoc(collection(db,"fees"),{
-    studentId:f_studentId.value,
-    totalFees:t,
-    amountPaid:p,
-    balance:t-p
-  });
-
-  loadFees();
-};
-
-updateFeesBtn.onclick = async () => {
-  if (!fEdit) return alert("Select fees");
-
-  const t = Number(total.value)||0;
-  const p = Number(paid.value)||0;
-
-  await updateDoc(doc(db,"fees",fEdit),{
-    studentId:f_studentId.value,
-    totalFees:t,
-    amountPaid:p,
-    balance:t-p
-  });
-
-  fEdit=null;
-  loadFees();
-};
-
-async function loadFees(){
-  feesTable.innerHTML="";
-  const snap=await getDocs(collection(db,"fees"));
-
-  snap.forEach(d=>{
-    const f=d.data();
-
-    const row=document.createElement("tr");
-    row.innerHTML=`
-      <td>${f.studentId}</td>
-      <td>${f.totalFees}</td>
-      <td>${f.amountPaid}</td>
-      <td>${f.balance}</td>
-      <td></td>
-    `;
-
-    const action=row.children[4];
-
-    const edit=document.createElement("button");
-    edit.className="edit";
-    edit.textContent="Edit";
-    edit.onclick=()=>{
-      fEdit=d.id;
-      f_studentId.value=f.studentId;
-      total.value=f.totalFees;
-      paid.value=f.amountPaid;
-    };
-
-    const del=document.createElement("button");
-    del.className="delete";
-    del.textContent="Delete";
-    del.onclick=async()=>{
-      await deleteDoc(doc(db,"fees",d.id));
-      loadFees();
-    };
-
-    action.appendChild(edit);
-    action.appendChild(del);
-
-    feesTable.appendChild(row);
-  });
-}
-
 /* INIT */
 loadStudents();
 loadResults();
-loadFees();
 
 </script>
 
