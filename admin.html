@@ -52,10 +52,116 @@
     }
 
     .error { color:red; margin-top:10px; }
+ 
+  
+  
+  
+/* NAVBAR */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  background: linear-gradient(135deg, #1e3a8a, #2563eb);
+  padding: 14px 25px;
+  color: white;
+
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* LOGO */
+.logo {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* NAV LINKS */
+.nav-links {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-item {
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: 0.3s;
+}
+
+/* HOVER */
+.nav-item:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* ACTIVE */
+.nav-item.active {
+  background: white;
+  color: #1e3a8a;
+  font-weight: bold;
+}
+
+/* RIGHT SIDE */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ADMIN BADGE */
+.admin-badge {
+  background: rgba(255,255,255,0.2);
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+/* LOGOUT */
+.logout-btn {
+  background: #ef4444;
+  border: none;
+  padding: 7px 14px;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background: #dc2626;
+}
+    
+  
+  
   </style>
 </head>
 
 <body>
+
+  <!-- PREMIUM NAVBAR -->
+<div class="navbar">
+
+  <div class="logo">
+    🎓 SchoolSys Pro
+  </div>
+
+  <div class="nav-links">
+    <span class="nav-item active">Home</span>
+    <span class="nav-item">Students</span>
+    <span class="nav-item">Results</span>
+    <span class="nav-item">Fees</span>
+  </div>
+
+  <div class="nav-right">
+    <span class="admin-badge">Admin</span>
+    <button class="logout-btn">Logout</button>
+  </div>
+
+</div>
+
+  
 
 <h2>Admin Dashboard</h2>
 
