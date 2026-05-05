@@ -557,30 +557,30 @@ loadFees();
 
 window.showSection = (section) => {
 
-  // HIDE ALL SECTIONS FIRST
+  // hide all sections
   document.querySelectorAll(".section").forEach(s => {
     s.style.display = "none";
   });
 
-  // HOME SECTION (simple dashboard view)
+  // HOME
   if (section === "home") {
     document.querySelector("h2").style.display = "block";
     return;
   }
 
-  // SHOW STUDENTS
+  // STUDENTS
   if (section === "students") {
-    studentTable.closest(".section").style.display = "block";
+    document.querySelectorAll(".section")[0].style.display = "block";
   }
 
-  // SHOW RESULTS
+  // RESULTS
   if (section === "results") {
-    resultsTable.closest(".section").style.display = "block";
+    document.querySelectorAll(".section")[1].style.display = "block";
   }
 
-  // SHOW FEES
+  // FEES
   if (section === "fees") {
-    feesTable.closest(".section").style.display = "block";
+    document.querySelectorAll(".section")[2].style.display = "block";
   }
 };
     
