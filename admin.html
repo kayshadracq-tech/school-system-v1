@@ -155,9 +155,11 @@ import {
   deleteDoc,
   doc,
   updateDoc,
-  setDoc
+  setDoc,
+  addDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+/* FIREBASE */
 const firebaseConfig = {
   apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
   authDomain: "school-system-748cf.firebaseapp.com",
@@ -212,15 +214,13 @@ const studentTable = document.getElementById("studentTable");
 const resultsTable = document.getElementById("resultsTable");
 const feesTable = document.getElementById("feesTable");
 
-/* DUPLICATE CHECK */
+/* CHECK */
 async function idExists(id){
   const snap = await getDocs(collection(db,"students"));
   return snap.docs.some(d => d.data().studentId === id);
 }
 
-/* =========================
-   STUDENT ADD (FIXED CORE)
-========================= */
+/* STUDENT ADD */
 addStudentBtn.onclick = async () => {
 
   const id = studentId.value.trim();
@@ -234,19 +234,17 @@ addStudentBtn.onclick = async () => {
     return alert("Student ID already exists");
 
   try {
-
     const cred = await createUserWithEmailAndPassword(auth, mail, pass);
 
-    // 🔥 CRITICAL FIX: UID becomes document ID
-    await setDoc(doc(db, "students", cred.user.uid), {
+    await setDoc(doc(db,"students",cred.user.uid),{
       uid: cred.user.uid,
-      name: name.value,
-      email: mail,
-      studentId: id,
-      password: pass,
-      age: age.value,
-      grade: grade.value,
-      class: classInput.value
+      name:name.value,
+      email:mail,
+      studentId:id,
+      password:pass,
+      age:age.value,
+      grade:grade.value,
+      class:classInput.value
     });
 
     loadStudents();
@@ -328,10 +326,11 @@ async function loadStudents(){
 addResultBtn.onclick = async () => {
   await addDoc(collection(db,"results"),{
     studentId:r_studentId.value,
-    subject:subject.value,
-    term:term.value,
-    mark:mark.value
+    subject,
+    term,
+    mark
   });
+
   loadResults();
 };
 
@@ -342,10 +341,11 @@ updateResultBtn.onclick = async () => {
     term:term.value,
     mark:mark.value
   });
+
   loadResults();
 };
 
-/* RESULTS LOAD */
+/* LOAD RESULTS */
 async function loadResults(){
   resultsTable.innerHTML="";
   const snap=await getDocs(collection(db,"results"));
@@ -413,7 +413,6 @@ updateFeesBtn.onclick = async () => {
   loadFees();
 };
 
-/* FEES LOAD */
 async function loadFees(){
   feesTable.innerHTML="";
   const snap=await getDocs(collection(db,"fees"));
