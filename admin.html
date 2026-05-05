@@ -303,27 +303,7 @@ addFeesBtn.onclick = async () => {
 };
 /* LOADERS */
 
-async function loadStudents(){
-  studentTable.innerHTML="";
-  const snap=await getDocs(collection(db,"students"));
-
-  snap.forEach(d=>{
-    const s=d.data();
-
-    const row=document.createElement("tr");
-    row.innerHTML=`
-      <td>${s.name||""}</td>
-      <td>${s.email||""}</td>
-      <td>${s.studentId||""}</td>
-      <td>${s.age||""}</td>
-      <td>${s.grade||""}</td>
-      <td>${s.class||""}</td>
-      <td></td>
-    `;
-
-    studentTable.appendChild(row);
-  });
-}
+async
 
 async function loadResults(){
   resultsTable.innerHTML="";
