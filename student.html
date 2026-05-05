@@ -6,29 +6,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
-    body { font-family: Arial; background:#f4f6f9; margin:0; }
-    header { background:#1e3a8a; color:white; text-align:center; padding:15px; }
+    body {
+      font-family: Arial;
+      background: #f4f6f9;
+      margin: 0;
+    }
 
-    .container { max-width:500px; margin:auto; padding:20px; }
+    header {
+      background: #1e3a8a;
+      color: white;
+      text-align: center;
+      padding: 15px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      padding: 20px;
+    }
 
     .card {
-      background:white;
-      padding:15px;
-      border-radius:10px;
-      margin-bottom:20px;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
     }
 
     input, button {
-      width:100%;
-      padding:10px;
-      margin-top:10px;
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
     }
 
-    button { background:#1e3a8a; color:white; border:none; }
-    .logout-btn { background:red; }
+    button {
+      background: #1e3a8a;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
 
-    #dashboard { display:none; }
-    .error { color:red; }
+    .logout-btn {
+      background: red;
+    }
+
+    #dashboard { display: none; }
+
+    .error { color: red; }
   </style>
 </head>
 
@@ -57,11 +80,13 @@
       <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
 
+    <!-- RESULTS -->
     <div class="card">
       <h3>Results</h3>
       <div id="results"></div>
     </div>
 
+    <!-- FEES -->
     <div class="card">
       <h3>Fees</h3>
       <p>Total: <span id="total"></span></p>
@@ -85,8 +110,6 @@ import {
 
 import {
   getFirestore,
-  doc,
-  getDoc,
   collection,
   query,
   where,
@@ -103,7 +126,10 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// LOGIN
+let currentStudentId = null;
+let currentEmail = null;
+
+/* LOGIN */
 window.login = async function () {
 
   const input = document.getElementById("loginInput").value.trim();
@@ -113,13 +139,13 @@ window.login = async function () {
   error.innerText = "";
 
   try {
-
     let email = input;
 
+    // If student ID used instead of email
     if (!input.includes("@")) {
 
       const q = query(
-        collection(db, "users"),
+        collection(db, "students"),
         where("studentId", "==", input)
       );
 
@@ -136,18 +162,28 @@ window.login = async function () {
     await signInWithEmailAndPassword(auth, email, password);
 
   } catch (err) {
-    error.innerText = "Login failed";
+    error.innerText = "Login failed: " + err.message;
   }
 };
 
-// LOGOUT
+/* LOGOUT */
 window.logout = async function () {
   await signOut(auth);
+
   document.getElementById("dashboard").style.display = "none";
   document.getElementById("loginCard").style.display = "block";
+
+  document.getElementById("loginInput").value = "";
+  document.getElementById("password").value = "";
+
+  document.getElementById("results").innerHTML = "";
+  document.getElementById("total").innerText = "";
+  document.getElementById("paid").innerText = "";
+  document.getElementById("balance").innerText = "";
+  document.getElementById("welcome").innerText = "";
 };
 
-// AUTH STATE
+/* AUTH STATE */
 onAuthStateChanged(auth, async (user) => {
 
   if (!user) return;
@@ -155,68 +191,84 @@ onAuthStateChanged(auth, async (user) => {
   document.getElementById("loginCard").style.display = "none";
   document.getElementById("dashboard").style.display = "block";
 
-  const userRef = doc(db, "users", user.uid);
-  const userSnap = await getDoc(userRef);
+  currentEmail = user.email;
 
-  if (!userSnap.exists()) return;
+  // 🔴 FIX: GET STUDENT FROM UID (NOT EMAIL ONLY)
+  const q = query(
+    collection(db, "students"),
+    where("uid", "==", user.uid)
+  );
 
-  const userData = userSnap.data();
+  const snap = await getDocs(q);
 
-  document.getElementById("welcome").innerText =
-    "Welcome " + userData.name;
-
-  // 🔴 CRITICAL FIX
-  const studentId = String(userData.studentId || "").trim();
-
-  console.log("Logged studentId:", studentId);
-
-  if (!studentId) {
-    document.getElementById("results").innerText = "No student ID assigned";
+  if (snap.empty) {
+    document.getElementById("welcome").innerText = "No student record found";
     return;
   }
 
-  // ================= RESULTS =================
-  const rQuery = query(
+  const student = snap.docs[0].data();
+  currentStudentId = student.studentId;
+
+  document.getElementById("welcome").innerText =
+    "Welcome " + (student.name || student.email);
+
+  loadResults();
+  loadFees();
+});
+
+/* RESULTS */
+async function loadResults() {
+
+  if (!currentStudentId) return;
+
+  const q = query(
     collection(db, "results"),
-    where("studentId", "==", studentId)
+    where("studentId", "==", currentStudentId)
   );
 
-  const rSnap = await getDocs(rQuery);
+  const snap = await getDocs(q);
 
-  const rDiv = document.getElementById("results");
-  rDiv.innerHTML = "";
+  const div = document.getElementById("results");
+  div.innerHTML = "";
 
-  if (rSnap.empty) {
-    rDiv.innerText = "No results found";
-  } else {
-    rSnap.forEach(d => {
-      const r = d.data();
-      rDiv.innerHTML +=
-        r.subject + " (Term " + r.term + ") - " + r.mark + "<br>";
-    });
+  if (snap.empty) {
+    div.innerHTML = "No results found";
+    return;
   }
 
-  // ================= FEES =================
-  const fQuery = query(
+  snap.forEach(doc => {
+    const r = doc.data();
+    div.innerHTML += `
+      ${r.subject} (Term ${r.term}) - ${r.mark}<br>
+    `;
+  });
+}
+
+/* FEES */
+async function loadFees() {
+
+  if (!currentStudentId) return;
+
+  const q = query(
     collection(db, "fees"),
-    where("studentId", "==", studentId)
+    where("studentId", "==", currentStudentId)
   );
 
-  const fSnap = await getDocs(fQuery);
+  const snap = await getDocs(q);
 
-  if (fSnap.empty) {
+  if (snap.empty) {
     document.getElementById("total").innerText = "0";
     document.getElementById("paid").innerText = "0";
     document.getElementById("balance").innerText = "0";
-  } else {
-    const f = fSnap.docs[0].data();
-
-    document.getElementById("total").innerText = f.totalFees ?? 0;
-    document.getElementById("paid").innerText = f.amountPaid ?? 0;
-    document.getElementById("balance").innerText = f.balance ?? 0;
+    return;
   }
 
-});
+  const f = snap.docs[0].data();
+
+  document.getElementById("total").innerText = f.totalFees || 0;
+  document.getElementById("paid").innerText = f.amountPaid || 0;
+  document.getElementById("balance").innerText = f.balance || 0;
+}
 
 </script>
 
