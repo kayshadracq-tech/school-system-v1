@@ -18,7 +18,6 @@
     }
 
     input { width:100%; padding:8px; margin:5px 0; }
-
     button { padding:8px; margin:3px; border:none; cursor:pointer; }
 
     .add { background:#007bff; color:white; }
@@ -116,6 +115,9 @@ import {
 
 const ADMIN_EMAIL = "shadracqkasonde@gmail.com";
 
+/* STORE ADMIN CREDENTIALS */
+let ADMIN_PASSWORD = "";
+
 const firebaseConfig = {
   apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
   authDomain: "school-system-748cf.firebaseapp.com",
@@ -129,6 +131,8 @@ const auth = getAuth(app);
 /* LOGIN */
 adminLoginBtn.onclick = async () => {
   try {
+    ADMIN_PASSWORD = adminPass.value;
+
     const cred = await signInWithEmailAndPassword(auth, adminEmail.value, adminPass.value);
 
     if (cred.user.email !== ADMIN_EMAIL) {
@@ -169,7 +173,7 @@ const classInput = document.getElementById("className");
 
 const studentTable = document.getElementById("studentTable");
 
-/* ADD FIXED */
+/* ADD FIXED (CRITICAL) */
 addStudentBtn.onclick = async () => {
 
   if (!email.value || !password.value || !studentId.value)
@@ -189,6 +193,10 @@ addStudentBtn.onclick = async () => {
       class:classInput.value
     });
 
+    /* 🔥 RESTORE ADMIN SESSION */
+    await signOut(auth);
+    await signInWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
+
     alert("Student added");
     loadStudents();
 
@@ -201,23 +209,17 @@ addStudentBtn.onclick = async () => {
 updateStudentBtn.onclick = async () => {
   if (!sEdit) return alert("Select student first");
 
-  try {
-    await updateDoc(doc(db,"students",sEdit),{
-      name:name.value,
-      email:email.value,
-      studentId:studentId.value,
-      age:age.value,
-      grade:grade.value,
-      class:classInput.value
-    });
+  await updateDoc(doc(db,"students",sEdit),{
+    name:name.value,
+    email:email.value,
+    studentId:studentId.value,
+    age:age.value,
+    grade:grade.value,
+    class:classInput.value
+  });
 
-    alert("Updated");
-    sEdit=null;
-    loadStudents();
-
-  } catch(err){
-    alert(err.message);
-  }
+  sEdit=null;
+  loadStudents();
 };
 
 /* LOAD */
@@ -258,8 +260,6 @@ async function loadStudents(){
     del.textContent="Delete";
     del.className="delete";
     del.onclick=async()=>{
-      if (!confirm("Delete student?")) return;
-
       await deleteDoc(doc(db,"students",d.id));
       loadStudents();
     };
