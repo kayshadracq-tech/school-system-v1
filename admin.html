@@ -239,25 +239,19 @@ addStudentBtn.onclick = async () => {
   if (await idExists(id)) return alert("Student ID exists");
 
   try {
+
     const userCred = await createUserWithEmailAndPassword(auth, mail, pass);
     const uid = userCred.user.uid;
 
-    await setDoc(doc(db,"users",uid),{
-      name:name.value,
-      email:mail,
-      role:"student",
-      studentId:id
-    });
-
-    await addDoc(collection(db,"students"),{
+    await setDoc(doc(db,"students", id),{
       uid,
-      name:name.value,
-      email:mail,
-      studentId:id,
-      password:pass,
-      age:age.value,
-      grade:grade.value,
-      class:classInput.value
+      name: name.value,
+      email: mail,
+      studentId: id,
+      password: pass,
+      age: age.value,
+      grade: grade.value,
+      class: classInput.value
     });
 
     loadStudents();
@@ -265,6 +259,7 @@ addStudentBtn.onclick = async () => {
   } catch(err){
     alert(err.message);
   }
+
 };
 
 updateStudentBtn.onclick = async () => {
