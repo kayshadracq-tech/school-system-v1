@@ -357,7 +357,7 @@ if (el) {
   const interval = setInterval(() => {
     el.textContent = messages[i];
     i = (i + 1) % messages.length;
-  }, 600);
+  }, 300);
 
   setTimeout(() => {
     clearInterval(interval);
@@ -398,8 +398,6 @@ window.addEventListener("load", () => {
   }, 800);
 });
 
-  
-});
   
 </script>
 
