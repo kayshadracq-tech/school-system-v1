@@ -197,7 +197,7 @@ onAuthStateChanged(auth, (user) => {
   document.getElementById("adminName").innerText = user.email;
 
   loginGate.remove();
-  document.getElementById("home").style.display = "block";
+
 
   // hide all sections first
   document.querySelectorAll(".section").forEach(s => s.style.display = "none");
@@ -532,9 +532,7 @@ if (section === "results") {
 
 if (section === "fees") {
   document.getElementById("fees").style.display = "block";
-}
-
-
+};
 
 
 
