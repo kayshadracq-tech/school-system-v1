@@ -338,8 +338,7 @@ const auth = getAuth(app);
    ========================= */
 signOut(auth).catch(() => {});
 
-
-    /* =========================
+/* =========================
    LOADING TEXT LOGIC
    ========================= */
 const messages = [
@@ -349,14 +348,20 @@ const messages = [
   "Preparing Dashboard..."
 ];
 
-const interval = setInterval(() => {
-  el.textContent = messages[i];
-  i = (i + 1) % messages.length;
-}, 800); // slower = readable
+const el = document.getElementById("loadingText");
 
-setTimeout(() => {
-  clearInterval(interval);
-}, 3000); // long enough to see messages
+if (el) {
+  let i = 0;
+
+  const interval = setInterval(() => {
+    el.textContent = messages[i];
+    i = (i + 1) % messages.length;
+  }, 800);
+
+  setTimeout(() => {
+    clearInterval(interval);
+  }, 3000);
+  }
 
 
 /* =========================
