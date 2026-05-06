@@ -24,41 +24,69 @@
       color: #007bff;
     }
 
-    a {
+    /* =========================
+       PORTAL BUTTON DESIGN
+       ========================= */
+
+    button {
       display: block;
+      width: 100%;
       margin: 15px 0;
       padding: 12px;
-      text-decoration: none;
+      border: none;
+      border-radius: 6px;
       background: #007bff;
       color: white;
-      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
     }
 
-    /* =========================
-   PORTAL BUTTON DESIGN
-   Used for Admin, Student,
-   and Teacher navigation
-   ========================= */
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
 
-button {
-  display: block;
-  width: 100%;
-  margin: 15px 0;
-  padding: 12px;
-  border: none;
-  border-radius: 6px;
-  background: #007bff;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-}
+<body>
 
-/* Hover effect for better UX */
-button:hover {
-  background: #0056b3;
-}
+<div class="box">
+  <h1>School Management System</h1>
 
-    
+  <p>Choose a portal to continue:</p>
+
+  <button onclick="goAdmin()">Admin Login</button>
+  <button onclick="goTeacher()">Teacher Login</button>
+  <button onclick="goStudent()">Student Login</button>
+</div>
+
+<script type="module">
+// ===============================
+// FIREBASE INITIALIZATION
+// ===============================
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
+  authDomain: "school-system-748cf.firebaseapp.com",
+  projectId: "school-system-748cf"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+// FORCE LOGOUT ON LOAD
+signOut(auth).catch(() => {});
+
+// ===============================
+// NAVIGATION FUNCTIONS
+// ===============================
+
+window.goAdmin = () => window.location.href = "admin.html";
+window.goStudent = () => window.location.href = "student.html";
+window.goTeacher = () => window.location.href = "teacher.html";
+
 </script>
 
 </body>
