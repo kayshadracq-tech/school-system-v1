@@ -5,79 +5,89 @@
 body {
   margin: 0;
   font-family: "Segoe UI", Arial, sans-serif;
-  background: #eef2f7 !important;
-  color: #111827 !important;
+  color: #111827;
+}
+
+/* make layout stable */
+html, body {
+  height: 100%;
 }
 
 /* =========================
-   NAVBAR
+   ERP LAYOUT (SIDEBAR SYSTEM)
 ========================= */
 
-.navbar {
+.layout {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #1e3a8a;
-  padding: 14px 20px;
+  min-height: 100vh;
+  background: #eef2f7;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 240px;
+  background: #0f172a;
   color: white;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
-
-/* LOGO */
-.logo {
-  font-weight: 700;
-  font-size: 16px;
-}
-
-/* NAV LINKS */
-.nav-links {
   display: flex;
-  gap: 14px;
-  justify-content: center;
+  flex-direction: column;
+  padding: 15px;
+}
+
+/* BRAND */
+.brand {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 25px;
+}
+
+/* MENU */
+.menu {
   flex: 1;
 }
 
-.nav-item {
+.menu-item {
+  padding: 10px;
+  margin: 6px 0;
   cursor: pointer;
-  padding: 6px 12px;
   border-radius: 6px;
-  font-size: 14px;
-  transition: 0.25s;
+  transition: 0.2s;
 }
 
-.nav-item:hover {
-  background: rgba(255,255,255,0.15);
+.menu-item:hover {
+  background: rgba(255,255,255,0.1);
 }
 
-.nav-item.active {
-  background: white;
-  color: #1e3a8a;
-  font-weight: 600;
+.menu-item.active {
+  background: #1e3a8a;
 }
 
-/* RIGHT SIDE */
-.nav-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.admin-badge {
-  background: rgba(255,255,255,0.2);
-  padding: 5px 10px;
-  border-radius: 6px;
+/* SIDEBAR FOOTER */
+.sidebar-footer {
+  border-top: 1px solid rgba(255,255,255,0.2);
+  padding-top: 10px;
   font-size: 13px;
 }
 
-.logout-btn {
+.sidebar-footer button {
+  width: 100%;
+  margin-top: 8px;
   background: #ef4444;
   color: white;
-  padding: 6px 12px;
-  border-radius: 6px;
   border: none;
+  padding: 8px;
+  border-radius: 6px;
   cursor: pointer;
+}
+
+/* =========================
+   MAIN AREA
+========================= */
+
+.main {
+  flex: 1;
+  background: #f8fafc;
+  padding: 20px;
+  overflow-x: auto;
 }
 
 /* =========================
@@ -92,6 +102,32 @@ body {
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.08);
   display: none;
+}
+
+/* =========================
+   LOGIN
+========================= */
+
+#loginGate {
+  position: fixed;
+  inset: 0;
+  background: #eef2f7;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loginBox {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  width: 320px;
+  text-align: center;
+}
+
+.error {
+  color: red;
+  margin-top: 10px;
 }
 
 /* =========================
@@ -165,32 +201,6 @@ tr:hover {
 }
 
 /* =========================
-   LOGIN
-========================= */
-
-#loginGate {
-  position: fixed;
-  inset: 0;
-  background: #eef2f7;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.loginBox {
-  background: white;
-  padding: 25px;
-  border-radius: 10px;
-  width: 320px;
-  text-align: center;
-}
-
-.error {
-  color: red;
-  margin-top: 10px;
-}
-
-/* =========================
    DASHBOARD CARDS
 ========================= */
 
@@ -217,72 +227,4 @@ tr:hover {
 .card p {
   font-size: 26px;
   font-weight: bold;
-}
-
-/* =========================
-   ERP LAYOUT (SIDEBAR SYSTEM)
-========================= */
-
-.layout {
-  display: flex;
-  min-height: 100vh;
-}
-
-/* SIDEBAR */
-.sidebar {
-  width: 240px;
-  background: #0f172a;
-  color: white;
-  display: flex;
-  flex-direction: column;
-  padding: 15px;
-}
-
-/* BRAND */
-.brand {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 25px;
-}
-
-/* MENU */
-.menu {
-  flex: 1;
-}
-
-.menu-item {
-  padding: 10px;
-  margin: 6px 0;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: 0.2s;
-}
-
-.menu-item:hover {
-  background: rgba(255,255,255,0.1);
-}
-
-.menu-item.active {
-  background: #1e3a8a;
-}
-
-/* SIDEBAR FOOTER */
-.sidebar-footer {
-  border-top: 1px solid rgba(255,255,255,0.2);
-  padding-top: 10px;
-  font-size: 13px;
-}
-
-.sidebar-footer button {
-  width: 100%;
-  margin-top: 8px;
-  background: #ef4444;
-  color: white;
-}
-
-/* MAIN AREA */
-.main {
-  flex: 1;
-  background: #eef2f7;
-  padding: 20px;
 }
