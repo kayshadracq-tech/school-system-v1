@@ -243,9 +243,6 @@
 }
 
 /* FADE-IN EFFECT FOR MAIN CONTENT */
-.poster {
-
-}
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
@@ -316,7 +313,6 @@
   </div>
 
 </div>
-
 <!-- =========================
      FIREBASE + NAVIGATION
      ========================= -->
@@ -325,6 +321,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+/* =========================
+   FIREBASE INITIALIZATION
+   ========================= */
 const firebaseConfig = {
   apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
   authDomain: "school-system-748cf.firebaseapp.com",
@@ -334,20 +333,54 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// SECURITY: force logout on landing page
+/* =========================
+   SECURITY: FORCE LOGOUT
+   ========================= */
 signOut(auth).catch(() => {});
 
-// NAVIGATION
-window.goAdmin = () => window.location.href = "admin.html";
-window.goTeacher = () => window.location.href = "teacher.html";
-window.goStudent = () => window.location.href = "student.html";
+/* =========================
+   LOADING TEXT LOGIC
+   ========================= */
+const messages = [
+  "Initializing Secure System...",
+  "Loading Student Database...",
+  "Connecting Firebase...",
+  "Preparing Dashboard..."
+];
 
+let i = 0;
+const interval = setInterval(() => {
+  const el = document.getElementById("loadingText");
 
+  if (el) {
+    el.textContent = messages[i];
+    i = (i + 1) % messages.length;
+  }
+}, 800);
+
+/* stop animation after 5 seconds */
+setTimeout(() => {
+  clearInterval(interval);
+}, 5000);
 
 /* =========================
-   REMOVE LOADING SCREEN
+   NAVIGATION FUNCTIONS
    ========================= */
+window.goAdmin = () => {
+  window.location.href = "admin.html";
+};
 
+window.goTeacher = () => {
+  window.location.href = "teacher.html";
+};
+
+window.goStudent = () => {
+  window.location.href = "student.html";
+};
+
+/* =========================
+   LOADING SCREEN REMOVAL
+   ========================= */
 window.addEventListener("load", () => {
   const loader = document.getElementById("loader");
 
@@ -359,24 +392,9 @@ window.addEventListener("load", () => {
       loader.style.display = "none";
     }, 500);
 
-  }, 800); // small delay for smooth effect
+  }, 800);
 });
 
-  const messages = [
-  "Initializing Secure System...",
-  "Loading Student Database...",
-  "Connecting Firebase...",
-  "Preparing Dashboard..."
-];
-
-let i = 0;
-setInterval(() => {
-  const el = document.getElementById("loadingText");
-  if (el) {
-    el.textContent = messages[i];
-    i = (i + 1) % messages.length;
-  }
-}, 800);
 </script>
 
 </body>
