@@ -182,20 +182,7 @@ const adminEmail = document.getElementById("adminEmail");
 const adminPass = document.getElementById("adminPass");
 const adminError = document.getElementById("adminError");
 
-adminLoginBtn.onclick = async () => {
-  adminError.innerText = "";
-  try {
-    await signInWithEmailAndPassword(
-      auth,
-      adminEmail.value.trim(),
-      adminPass.value.trim()
-    );
-  } catch {
-    adminError.innerText = "Invalid email or password";
-  }
-};
-
-
+  
 /* LOGIN */
 adminLoginBtn.onclick = async () => {
   adminError.innerText = "";
@@ -318,7 +305,9 @@ updateStudentBtn.onclick = async () => {
 async function loadStudents(){
   studentTable.innerHTML="";
   const snap = await getDocs(collection(db,"students"));
-
+  
+  document.getElementById("totalStudents").innerText = snap.size;
+  
   snap.forEach(d=>{
     const s=d.data();
 
@@ -388,6 +377,8 @@ updateResultBtn.onclick = async () => {
 async function loadResults(){
   resultsTable.innerHTML="";
   const snap=await getDocs(collection(db,"results"));
+
+  document.getElementById("totalResults").innerText = snap.size;
 
   snap.forEach(d=>{
     const r=d.data();
@@ -463,6 +454,8 @@ updateFeesBtn.onclick = async () => {
 async function loadFees(){
   feesTable.innerHTML="";
   const snap=await getDocs(collection(db,"fees"));
+
+  document.getElementById("totalFees").innerText = snap.size;
 
   snap.forEach(d=>{
     const f=d.data();
