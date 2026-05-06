@@ -177,6 +177,23 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const adminLoginBtn = document.getElementById("adminLoginBtn");
+const adminEmail = document.getElementById("adminEmail");
+const adminPass = document.getElementById("adminPass");
+const adminError = document.getElementById("adminError");
+
+adminLoginBtn.onclick = async () => {
+  adminError.innerText = "";
+  try {
+    await signInWithEmailAndPassword(
+      auth,
+      adminEmail.value.trim(),
+      adminPass.value.trim()
+    );
+  } catch {
+    adminError.innerText = "Invalid email or password";
+  }
+};
 
 
 /* LOGIN */
@@ -532,6 +549,8 @@ if (section === "results") {
 
 if (section === "fees") {
   document.getElementById("fees").style.display = "block";
+}
+
 };
 
 
