@@ -76,7 +76,7 @@
 </div>
 
 <!-- STUDENTS -->
-<div class="section">
+<div class="section" id="students">
   <h3>Students</h3>
 
   <input id="name" placeholder="Name">
@@ -101,7 +101,7 @@
 </div>
 
 <!-- RESULTS -->
-<div class="section">
+<div class="section" id="results">
   <h3>Results</h3>
 
   <input id="r_studentId" placeholder="Student ID">
@@ -123,7 +123,7 @@
 </div>
 
 <!-- FEES -->
-<div class="section">
+<div class="section" id="fees">
   <h3>Fees</h3>
 
   <input id="f_studentId" placeholder="Student ID">
@@ -522,18 +522,17 @@ window.showSection = (section) => {
   document.getElementById("home").style.display = "block";
   return;
                                                                      }
-  if (section === "students") {
-    document.querySelectorAll(".section")[0].style.display = "block";
-  }
+if (section === "students") {
+  document.getElementById("students").style.display = "block";
+}
 
-  if (section === "results") {
-    document.querySelectorAll(".section")[1].style.display = "block";
-  }
+if (section === "results") {
+  document.getElementById("results").style.display = "block";
+}
 
-  if (section === "fees") {
-    document.querySelectorAll(".section")[2].style.display = "block";
-  }
-};
+if (section === "fees") {
+  document.getElementById("fees").style.display = "block";
+}
 
 
 
