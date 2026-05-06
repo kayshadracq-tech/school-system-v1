@@ -1,5 +1,7 @@
+/* =========================
+   GLOBAL STYLES (ALL PAGES)
+   ========================= */
 
-/* GLOBAL BODY STYLE*/
 body {
   margin: 0;
   font-family: Arial, sans-serif;
@@ -8,6 +10,7 @@ body {
   color: white;
 }
 
+/* TITLE */
 h1 {
   font-size: 34px;
   margin-bottom: 10px;
@@ -19,6 +22,7 @@ h1 {
   margin-bottom: 20px;
 }
 
+/* BUTTONS */
 .buttons {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -56,7 +60,7 @@ button:hover {
   opacity: 0.9;
 }
 
-
+/* CONTACT */
 .contact {
   margin-top: 25px;
   font-size: 13px;
@@ -74,6 +78,7 @@ button:hover {
   text-decoration: underline;
 }
 
+/* FOOTER */
 .footer {
   margin-top: 20px;
   font-size: 12px;
@@ -82,72 +87,36 @@ button:hover {
 }
 
 /* =========================
-   MOBILE & DESKTOP RESPONSIVE
+   RESPONSIVE
    ========================= */
 
-/* TABLETS */
 @media (max-width: 900px) {
-
-  h1 {
-    font-size: 28px;
-  }
-
-  .subtitle {
-    font-size: 15px;
-  }
+  h1 { font-size: 28px; }
+  .subtitle { font-size: 15px; }
 }
 
-/* PHONES */
 @media (max-width: 700px) {
 
   body {
     padding: 15px;
-    height: auto;
-  }
-
-
-  h1 {
-    font-size: 24px;
-  }
-
-  .subtitle {
-    font-size: 14px;
-  }
-
-  .info-box {
-    font-size: 13px;
-    padding: 12px;
   }
 
   .buttons {
     grid-template-columns: 1fr;
-    gap: 10px;
   }
 
   button {
-    padding: 14px;
     font-size: 16px;
   }
 
-  .contact {
-    font-size: 12px;
-  }
-
-  .footer {
-    font-size: 11px;
-  }
+  .contact { font-size: 12px; }
+  .footer { font-size: 11px; }
 }
 
-/* SMALL PHONES */
 @media (max-width: 380px) {
-
-  h1 {
-    font-size: 20px;
-  }
-
+  h1 { font-size: 20px; }
   button {
     font-size: 14px;
     padding: 12px;
   }
 }
-
