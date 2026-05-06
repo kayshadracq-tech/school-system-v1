@@ -218,3 +218,71 @@ tr:hover {
   font-size: 26px;
   font-weight: bold;
 }
+
+/* =========================
+   ERP LAYOUT (SIDEBAR SYSTEM)
+========================= */
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 240px;
+  background: #0f172a;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+}
+
+/* BRAND */
+.brand {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 25px;
+}
+
+/* MENU */
+.menu {
+  flex: 1;
+}
+
+.menu-item {
+  padding: 10px;
+  margin: 6px 0;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: 0.2s;
+}
+
+.menu-item:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.menu-item.active {
+  background: #1e3a8a;
+}
+
+/* SIDEBAR FOOTER */
+.sidebar-footer {
+  border-top: 1px solid rgba(255,255,255,0.2);
+  padding-top: 10px;
+  font-size: 13px;
+}
+
+.sidebar-footer button {
+  width: 100%;
+  margin-top: 8px;
+  background: #ef4444;
+  color: white;
+}
+
+/* MAIN AREA */
+.main {
+  flex: 1;
+  background: #eef2f7;
+  padding: 20px;
+}
