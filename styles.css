@@ -4,10 +4,13 @@ body {
   font-family: Arial, sans-serif;
   background: linear-gradient(135deg, #0f172a, #1e3a8a);
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   color: white;
+}
+
+/* ONLY CENTER POSTER, NOT WHOLE BODY */
+.poster {
+  position: relative;
+  margin: auto;
 }
 
     /* =========================
