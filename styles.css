@@ -7,6 +7,12 @@ body {
   color: white;
 }
 
+/* Smoothly reveal poster after loading screen completes */
+.poster {
+  opacity: 0;
+  animation: fadeIn 1s ease-in-out forwards;
+  animation-delay: 0.8s;
+}
 /* ONLY CENTER POSTER, NOT WHOLE BODY */
     .poster {
       width: 90%;
