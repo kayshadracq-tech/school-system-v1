@@ -81,4 +81,86 @@ button:hover {
   text-align: center;
 }
 
+/* =========================
+   MOBILE & DESKTOP RESPONSIVE
+   ========================= */
+
+/* TABLETS */
+@media (max-width: 900px) {
+  .poster {
+    width: 92%;
+    padding: 30px;
+  }
+
+  h1 {
+    font-size: 28px;
+  }
+
+  .subtitle {
+    font-size: 15px;
+  }
+}
+
+/* PHONES */
+@media (max-width: 700px) {
+
+  body {
+    padding: 15px;
+    height: auto;
+  }
+
+  .poster {
+    width: 100%;
+    padding: 25px;
+    border-radius: 12px;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  .info-box {
+    font-size: 13px;
+    padding: 12px;
+  }
+
+  .buttons {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  button {
+    padding: 14px;
+    font-size: 16px;
+  }
+
+  .contact {
+    font-size: 12px;
+  }
+
+  .footer {
+    font-size: 11px;
+  }
+}
+
+/* SMALL PHONES */
+@media (max-width: 380px) {
+
+  h1 {
+    font-size: 20px;
+  }
+
+  .poster {
+    padding: 20px;
+  }
+
+  button {
+    font-size: 14px;
+    padding: 12px;
+  }
+}
 
