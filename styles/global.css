@@ -1,1 +1,84 @@
 
+/* GLOBAL BODY STYLE*/
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #0f172a, #1e3a8a);
+  min-height: 100vh;
+  color: white;
+}
+
+h1 {
+  font-size: 34px;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #cbd5e1;
+  margin-bottom: 20px;
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-top: 25px;
+}
+
+button {
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.admin {
+  background: #ef4444;
+  color: white;
+}
+
+.teacher {
+  background: #f59e0b;
+  color: black;
+}
+
+.student {
+  background: #22c55e;
+  color: black;
+}
+
+button:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+} I'm
+
+
+.contact {
+  margin-top: 25px;
+  font-size: 13px;
+  color: #cbd5e1;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.contact a {
+  color: #60a5fa;
+  text-decoration: none;
+}
+
+.contact a:hover {
+  text-decoration: underline;
+}
+
+.footer {
+  margin-top: 20px;
+  font-size: 12px;
+  color: #94a3b8;
+  text-align: center;
+}
+
+
