@@ -24,7 +24,7 @@
     .poster {
       width: 90%;
       max-width: 850px;
-      background: rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.12);
       backdrop-filter: blur(12px);
       border-radius: 16px;
       padding: 40px;
@@ -207,10 +207,63 @@
     padding: 12px;
   }
 }
+/* =========================
+   LOADING SCREEN STYLE
+   ========================= */
+
+#loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #0f172a;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  z-index: 9999;
+}
+
+/* SPINNER ANIMATION */
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(255,255,255,0.2);
+  border-top: 5px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* FADE-IN EFFECT FOR MAIN CONTENT */
+.poster {
+  animation: fadeIn 1s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+    
   </style>
 </head>
 
 <body>
+  <!-- =========================
+     LOADING SCREEN
+     ========================= -->
+<div id="loader">
+  <div class="spinner"></div>
+  <p>Loading SMIS...</p>
+  
+</div>
 
 <div class="poster">
 
@@ -281,6 +334,25 @@ window.goAdmin = () => window.location.href = "admin.html";
 window.goTeacher = () => window.location.href = "teacher.html";
 window.goStudent = () => window.location.href = "student.html";
 
+
+
+/* =========================
+   REMOVE LOADING SCREEN
+   ========================= */
+
+window.addEventListener("load", () => {
+  const loader = document.getElementById("loader");
+
+  setTimeout(() => {
+    loader.style.opacity = "0";
+    loader.style.transition = "0.5s ease";
+
+    setTimeout(() => {
+      loader.style.display = "none";
+    }, 500);
+
+  }, 800); // small delay for smooth effect
+});
 </script>
 
 </body>
