@@ -338,7 +338,8 @@ const auth = getAuth(app);
    ========================= */
 signOut(auth).catch(() => {});
 
-/* =========================
+
+    /* =========================
    LOADING TEXT LOGIC
    ========================= */
 const messages = [
@@ -349,19 +350,22 @@ const messages = [
 ];
 
 let i = 0;
-const interval = setInterval(() => {
-  const el = document.getElementById("loadingText");
+const el = document.getElementById("loadingText");
 
-  if (el) {
+let interval;
+
+if (el) {
+  interval = setInterval(() => {
     el.textContent = messages[i];
     i = (i + 1) % messages.length;
-  }
-}, 800);
+  }, 800);
+}
 
-/* stop animation after 5 seconds */
+/* stop animation when loader is removed */
 setTimeout(() => {
   clearInterval(interval);
-}, 5000);
+}, 800);
+
 
 /* =========================
    NAVIGATION FUNCTIONS
@@ -377,6 +381,7 @@ window.goTeacher = () => {
 window.goStudent = () => {
   window.location.href = "student.html";
 };
+
 
 /* =========================
    LOADING SCREEN REMOVAL
@@ -394,8 +399,5 @@ window.addEventListener("load", () => {
 
   }, 800);
 });
-
-</script>
-
 </body>
 </html>
