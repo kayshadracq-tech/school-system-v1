@@ -349,20 +349,14 @@ const messages = [
   "Preparing Dashboard..."
 ];
 
-const el = document.getElementById("loadingText");
+const interval = setInterval(() => {
+  el.textContent = messages[i];
+  i = (i + 1) % messages.length;
+}, 800); // slower = readable
 
-if (el) {
-  let i = 0;
-
-  const interval = setInterval(() => {
-    el.textContent = messages[i];
-    i = (i + 1) % messages.length;
-  }, 300);
-
-  setTimeout(() => {
-    clearInterval(interval);
-  }, 800);
-  }
+setTimeout(() => {
+  clearInterval(interval);
+}, 3000); // long enough to see messages
 
 
 /* =========================
