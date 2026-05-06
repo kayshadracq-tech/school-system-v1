@@ -54,7 +54,7 @@ button {
 button:hover {
   transform: scale(1.05);
   opacity: 0.9;
-} I'm
+}
 
 
 .contact {
@@ -87,10 +87,6 @@ button:hover {
 
 /* TABLETS */
 @media (max-width: 900px) {
-  .poster {
-    width: 92%;
-    padding: 30px;
-  }
 
   h1 {
     font-size: 28px;
@@ -109,11 +105,6 @@ button:hover {
     height: auto;
   }
 
-  .poster {
-    width: 100%;
-    padding: 25px;
-    border-radius: 12px;
-  }
 
   h1 {
     font-size: 24px;
@@ -152,10 +143,6 @@ button:hover {
 
   h1 {
     font-size: 20px;
-  }
-
-  .poster {
-    padding: 20px;
   }
 
   button {
