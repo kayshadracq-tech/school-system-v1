@@ -244,13 +244,20 @@
 
 /* FADE-IN EFFECT FOR MAIN CONTENT */
 .poster {
-  animation: fadeIn 1s ease-in-out;
+
 }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+  /* =========================
+   REUSABLE ANIMATION CLASS
+   ========================= */
+.animate-in {
+  animation: fadeIn 1s ease-in-out;
+}  
     
   </style>
 </head>
