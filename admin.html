@@ -197,7 +197,7 @@ onAuthStateChanged(auth, (user) => {
   document.getElementById("adminName").innerText = user.email;
 
   loginGate.remove();
-  document.querySelector("h2").style.display = "block";
+  document.getElementById("home").style.display = "block";
 
   // hide all sections first
   document.querySelectorAll(".section").forEach(s => s.style.display = "none");
@@ -519,10 +519,9 @@ window.showSection = (section) => {
 
   // show selected
   if (section === "home") {
-    document.querySelector("h2").style.display = "block";
-    return;
-  }
-
+  document.getElementById("home").style.display = "block";
+  return;
+                                                                     }
   if (section === "students") {
     document.querySelectorAll(".section")[0].style.display = "block";
   }
