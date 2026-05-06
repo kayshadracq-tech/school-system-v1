@@ -1,48 +1,69 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>School Management Information System (SMIS)</title>
+  <title>SMIS - School Management System</title>
 
   <style>
     body {
-      font-family: Arial;
-      background: #eef2f7;
-      text-align: center;
-      padding: 50px;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #eef2f7, #dbeafe);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
 
     .box {
       background: white;
-      padding: 30px;
-      max-width: 500px;
-      margin: auto;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 35px;
+      width: 90%;
+      max-width: 600px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      text-align: center;
     }
 
     h1 {
-      color: #007bff;
+      color: #1e3a8a;
+      margin-bottom: 10px;
     }
 
-    /* =========================
-       PORTAL BUTTON DESIGN
-       ========================= */
+    p {
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .info {
+      background: #f1f5f9;
+      padding: 12px;
+      border-radius: 8px;
+      margin: 15px 0;
+      font-size: 14px;
+    }
 
     button {
       display: block;
       width: 100%;
-      margin: 15px 0;
+      margin: 12px 0;
       padding: 12px;
       border: none;
       border-radius: 6px;
-      background: #007bff;
+      background: #2563eb;
       color: white;
       font-size: 16px;
       cursor: pointer;
+      transition: 0.3s;
     }
 
     button:hover {
-      background: #0056b3;
+      background: #1e40af;
+    }
+
+    .footer {
+      margin-top: 15px;
+      font-size: 12px;
+      color: #777;
     }
   </style>
 </head>
@@ -50,19 +71,29 @@
 <body>
 
 <div class="box">
-  <h1>School Management System</h1>
 
-  <p>Choose a portal to continue:</p>
+  <h1>🎓 School Management System</h1>
 
-  <button onclick="goAdmin()">Admin Login</button>
-  <button onclick="goTeacher()">Teacher Login</button>
-  <button onclick="goStudent()">Student Login</button>
+  <p>Welcome to the official School Management Information System (SMIS).</p>
+
+  <div class="info">
+    A secure digital platform for managing students, teachers, results, and fees in real time.
+  </div>
+
+  <p>Select your portal to continue:</p>
+
+  <!-- PORTALS -->
+  <button onclick="goAdmin()">Admin Portal</button>
+  <button onclick="goTeacher()">Teacher Portal</button>
+  <button onclick="goStudent()">Student Portal</button>
+
+  <div class="footer">
+    © 2026 SMIS | Powered by Firebase & Modern Web Technology
+  </div>
+
 </div>
 
 <script type="module">
-// ===============================
-// FIREBASE INITIALIZATION
-// ===============================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -76,16 +107,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// FORCE LOGOUT ON LOAD
+// SECURITY: force logout on landing page
 signOut(auth).catch(() => {});
 
-// ===============================
-// NAVIGATION FUNCTIONS
-// ===============================
-
+// NAVIGATION
 window.goAdmin = () => window.location.href = "admin.html";
-window.goStudent = () => window.location.href = "student.html";
 window.goTeacher = () => window.location.href = "teacher.html";
+window.goStudent = () => window.location.href = "student.html";
 
 </script>
 
