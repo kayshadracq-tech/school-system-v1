@@ -228,3 +228,60 @@ tr:hover {
   font-size: 26px;
   font-weight: bold;
 }
+
+/* =========================
+   MOBILE RESPONSIVE FIX
+========================= */
+
+@media (max-width: 768px) {
+
+  .layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    align-items: center;
+  }
+
+  .menu {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .menu-item {
+    white-space: nowrap;
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  .sidebar-footer {
+    display: none;
+  }
+
+  .main {
+    padding: 10px;
+  }
+
+  .section {
+    margin: 10px;
+    padding: 15px;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  input {
+    font-size: 14px;
+  }
+
+  button {
+    width: 100%;
+  }
+     }
