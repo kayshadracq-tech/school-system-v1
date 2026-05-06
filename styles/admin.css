@@ -232,7 +232,9 @@ tr:hover {
 /* =========================
    MOBILE RESPONSIVE FIX
 ========================= */
-
+* {
+  box-sizing: border-box;
+}
 @media (max-width: 768px) {
 
   .layout {
