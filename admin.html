@@ -55,17 +55,98 @@
     </div>
 
     <!-- HOME -->
-    <div class="section" id="home">...</div>
+    <div class="section" id="home">
+  <h2>Dashboard Home</h2>
+  <div class="dashboard-grid">
+    <div class="card">
+      <h4>Total Students</h4>
+      <p id="totalStudents">0</p>
+    </div>
+
+    <div class="card">
+      <h4>Total Results</h4>
+      <p id="totalResults">0</p>
+    </div>
+
+    <div class="card">
+      <h4>Total Fees Records</h4>
+      <p id="totalFees">0</p>
+    </div>
+  </div>
+</div>
 
     <!-- STUDENTS -->
-    <div class="section" id="students">...</div>
+    <div class="section" id="students">
+
+  <h2>Students Management</h2>
+
+  <input id="name" placeholder="Name">
+  <input id="email" placeholder="Email">
+  <input id="studentId" placeholder="Student ID">
+  <input id="password" type="password" placeholder="Password">
+  <input id="age" placeholder="Age">
+  <input id="grade" placeholder="Grade">
+  <input id="className" placeholder="Class">
+
+  <button id="addStudentBtn" class="add">Add Student</button>
+  <button id="updateStudentBtn" class="update">Update Student</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th><th>Email</th><th>ID</th><th>Age</th><th>Grade</th><th>Class</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="studentTable"></tbody>
+  </table>
+
+</div>
 
     <!-- RESULTS -->
-    <div class="section" id="results">...</div>
+    <div class="section" id="results">
 
+  <h2>Results Management</h2>
+
+  <input id="r_studentId" placeholder="Student ID">
+  <input id="subject" placeholder="Subject">
+  <input id="term" placeholder="Term">
+  <input id="mark" placeholder="Mark">
+
+  <button id="addResultBtn" class="add">Add Result</button>
+  <button id="updateResultBtn" class="update">Update Result</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th><th>Subject</th><th>Term</th><th>Mark</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="resultsTable"></tbody>
+  </table>
+
+</div>
     <!-- FEES -->
-    <div class="section" id="fees">...</div>
+    <div class="section" id="fees">
 
+  <h2>Fees Management</h2>
+
+  <input id="f_studentId" placeholder="Student ID">
+  <input id="total" placeholder="Total Fees">
+  <input id="paid" placeholder="Paid Amount">
+
+  <button id="addFeesBtn" class="add">Add Fees</button>
+  <button id="updateFeesBtn" class="update">Update Fees</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th><th>Total</th><th>Paid</th><th>Balance</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="feesTable"></tbody>
+  </table>
+
+</div>
   </div>
 </div>      
   
