@@ -34,8 +34,6 @@
       border-radius: 6px;
     }
 
-    a:hover 
-    
     /* =========================
    PORTAL BUTTON DESIGN
    Used for Admin, Student,
@@ -58,66 +56,9 @@ button {
 /* Hover effect for better UX */
 button:hover {
   background: #0056b3;
-}{
-      background: #0056b3;
-    }
-  </style>
-</head>
+}
 
-<body>
-
-  <div class="box">
-    <h1>School Management Information System</h1>
-
-    <p>Choose a portal to continue:</p>
     
-<!-- =========================
-   PORTAL NAVIGATION BUTTONS
-   These buttons route users to
-   their respective login pages
-   ========================= -->
-
-<button onclick="goAdmin()">Admin Login</button>
-<button onclick="goStudent()">Student Login</button>
-<button onclick="goTeacher()">Teacher Login</button>onclick="goStudent()">Student Login</button>   
-
-  </div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
-  authDomain: "school-system-748cf.firebaseapp.com",
-  projectId: "school-system-748cf"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-
-// 🔴 FORCE LOGOUT EVERY TIME INDEX LOADS
-signOut(auth).catch(() => {});
-
-  // ===============================
-// NAVIGATION CONTROLLER
-// Handles routing between portals
-// ===============================
-
-window.goAdmin = () => {
-  // Redirect to Admin login page
-  window.location.href = "admin.html";
-};
-
-window.goStudent = () => {
-  // Redirect to Student login page
-  window.location.href = "student.html";
-};
-
-window.goTeacher = () => {
-  // Redirect to Teacher login page
-  window.location.href = "teacher.html";
-};
 </script>
 
 </body>
