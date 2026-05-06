@@ -1,3 +1,18 @@
+/* =========================
+   ADMIN BASE
+========================= */
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #eef2f7 !important;
+  color: #111827 !important;
+}
+
+/* =========================
+   NAVBAR
+========================= */
+
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -8,39 +23,38 @@
   position: sticky;
   top: 0;
   z-index: 1000;
-  flex-wrap: wrap;
 }
 
-/* LEFT LOGO */
+/* LOGO */
 .logo {
-  font-weight: bold;
+  font-weight: 700;
   font-size: 16px;
-  flex: 1;
 }
 
-/* CENTER NAV */
+/* NAV LINKS */
 .nav-links {
   display: flex;
-  gap: 12px;
-  flex: 2;
+  gap: 14px;
   justify-content: center;
+  flex: 1;
 }
 
 .nav-item {
   cursor: pointer;
   padding: 6px 12px;
   border-radius: 6px;
-  transition: 0.3s;
+  font-size: 14px;
+  transition: 0.25s;
 }
 
 .nav-item:hover {
-  background: rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.15);
 }
 
 .nav-item.active {
   background: white;
   color: #1e3a8a;
-  font-weight: bold;
+  font-weight: 600;
 }
 
 /* RIGHT SIDE */
@@ -48,12 +62,10 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  flex: 1;
-  justify-content: flex-end;
 }
 
 .admin-badge {
-  background: #2563eb;
+  background: rgba(255,255,255,0.2);
   padding: 5px 10px;
   border-radius: 6px;
   font-size: 13px;
@@ -68,48 +80,37 @@
   cursor: pointer;
 }
 
-* =========================
-   ADMIN PAGE WRAPPER FIX
-========================= */
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #eef2f7 !important; /* override global */
-  color: black !important;
-}
-
 /* =========================
-   NAVBAR (CLEAN + MODERN)
+   DASHBOARD SECTIONS
 ========================= */
-.
 
-/* =========================
-   SECTIONS
-========================= */
 .section {
   background: white;
-  padding: 20px;
+  padding: 22px;
   margin: 20px auto;
-  max-width: 1000px;
+  max-width: 1100px;
   border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
   display: none;
 }
 
 /* =========================
    INPUTS
 ========================= */
+
 input {
   width: 100%;
   padding: 10px;
   margin: 6px 0;
   border-radius: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
 }
 
 /* =========================
-   BUTTONS (OVERRIDE GLOBAL)
+   BUTTONS
 ========================= */
+
 button {
   padding: 8px 12px !important;
   margin: 4px;
@@ -117,41 +118,56 @@ button {
   cursor: pointer;
   border-radius: 6px;
   font-size: 14px !important;
+  transition: 0.2s;
+}
+
+button:hover {
+  opacity: 0.9;
+  transform: scale(1.03);
 }
 
 .add { background: #007bff; color: white; }
-.update { background: green; color: white; }
-.delete { background: red; color: white; }
-.edit { background: orange; color: white; }
+.update { background: #16a34a; color: white; }
+.delete { background: #dc2626; color: white; }
+.edit { background: #f59e0b; color: white; }
 
 /* =========================
-   TABLE
+   TABLES
 ========================= */
+
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 10px;
+  margin-top: 12px;
+  font-size: 14px;
 }
 
 th {
-  background: #007bff;
+  background: #1e3a8a;
   color: white;
-  padding: 10px;
+  padding: 12px;
+  font-size: 13px;
+  text-transform: uppercase;
 }
 
 td {
-  padding: 8px;
+  padding: 10px;
   text-align: center;
-  color: black;
+  color: #111827;
 }
 
 tr:nth-child(even) {
-  background: #f2f2f2;
+  background: #f3f4f6;
+}
+
+tr:hover {
+  background: #e5e7eb;
 }
 
 /* =========================
-   LOGIN BOX
+   LOGIN
 ========================= */
+
 #loginGate {
   position: fixed;
   inset: 0;
@@ -167,13 +183,16 @@ tr:nth-child(even) {
   border-radius: 10px;
   width: 320px;
   text-align: center;
-  color: black;
 }
 
 .error {
   color: red;
   margin-top: 10px;
 }
+
+/* =========================
+   DASHBOARD CARDS
+========================= */
 
 .dashboard-grid {
   display: grid;
@@ -188,11 +207,9 @@ tr:nth-child(even) {
   padding: 20px;
   border-radius: 12px;
   text-align: center;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
 }
 
 .card h4 {
-  margin-bottom: 10px;
   font-size: 14px;
   opacity: 0.9;
 }
@@ -200,7 +217,4 @@ tr:nth-child(even) {
 .card p {
   font-size: 26px;
   font-weight: bold;
-}
-.section {
-  display: none;
 }
