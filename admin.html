@@ -430,14 +430,29 @@ loadFees();
 
 
 
-// NAVIGATION
+// =======================
+// CLEAN SIDEBAR NAVIGATION FIX
+// =======================
+
 window.showSection = (section) => {
 
-  // sidebar active highlight
+  // remove active from all menu items
   document.querySelectorAll(".menu-item").forEach(item => {
     item.classList.remove("active");
   });
 
+  // hide all sections
+  document.querySelectorAll(".section").forEach(sec => {
+    sec.style.display = "none";
+  });
+
+  // show selected section
+  const activeSection = document.getElementById(section);
+  if (activeSection) {
+    activeSection.style.display = "block";
+  }
+
+  // activate sidebar item safely
   const map = {
     home: 0,
     students: 1,
@@ -445,52 +460,11 @@ window.showSection = (section) => {
     fees: 3
   };
 
-  document.querySelectorAll(".menu-item")[map[section]].classList.add("active");
-
-  // hide all sections
-  document.querySelectorAll(".section").forEach(s => {
-    s.style.display = "none";
-  });
-
-  // show selected
-  document.getElementById(section).style.display = "block";
+  const items = document.querySelectorAll(".menu-item");
+  if (items[map[section]]) {
+    items[map[section]].classList.add("active");
+  }
 };
-  });
-
-  // highlight current
-  const map = {
-    home: 0,
-    students: 1,
-    results: 2,
-    fees: 3
-  };
-
-  document.querySelectorAll(".nav-item")[map[section]].classList.add("active");
-
-  // hide all sections
-  document.querySelectorAll(".section").forEach(s => {
-    s.style.display = "none";
-  });
-
-  // show selected
-  if (section === "home") {
-  document.getElementById("home").style.display = "block";
-  return;
-                                                                     }
-if (section === "students") {
-  document.getElementById("students").style.display = "block";
-}
-
-if (section === "results") {
-  document.getElementById("results").style.display = "block";
-}
-
-if (section === "fees") {
-  document.getElementById("fees").style.display = "block";
-}
-
-};
-
 
 
 // =======================
