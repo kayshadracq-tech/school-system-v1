@@ -519,9 +519,29 @@ loadFees();
 // NAVIGATION
 window.showSection = (section) => {
 
-  // remove active highlight
-  document.querySelectorAll(".nav-item").forEach(item => {
+  // remove active highlight (SIDEBAR)
+  document.querySelectorAll(".menu-item").forEach(item => {
     item.classList.remove("active");
+  });
+
+  // map sections to sidebar menu
+  const map = {
+    home: 0,
+    students: 1,
+    results: 2,
+    fees: 3
+  };
+
+  document.querySelectorAll(".menu-item")[map[section]].classList.add("active");
+
+  // hide all sections
+  document.querySelectorAll(".section").forEach(s => {
+    s.style.display = "none";
+  });
+
+  // show selected section
+  document.getElementById(section).style.display = "block";
+};
   });
 
   // highlight current
