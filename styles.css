@@ -8,14 +8,6 @@ body {
 }
 
 /* ONLY CENTER POSTER, NOT WHOLE BODY */
-.poster {
-  position: relative;
-  margin: auto;
-}
-
-    /* =========================
-       MAIN POSTER CARD
-       ========================= */
     .poster {
       width: 90%;
       max-width: 850px;
