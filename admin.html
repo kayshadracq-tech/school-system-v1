@@ -502,12 +502,11 @@ loadFees();
 // NAVIGATION
 window.showSection = (section) => {
 
-  // remove active highlight (SIDEBAR)
+  // sidebar active highlight
   document.querySelectorAll(".menu-item").forEach(item => {
     item.classList.remove("active");
   });
 
-  // map sections to sidebar menu
   const map = {
     home: 0,
     students: 1,
@@ -522,7 +521,7 @@ window.showSection = (section) => {
     s.style.display = "none";
   });
 
-  // show selected section
+  // show selected
   document.getElementById(section).style.display = "block";
 };
   });
