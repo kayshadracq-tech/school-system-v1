@@ -14,22 +14,34 @@
 <body>
 
   <!-- PREMIUM NAVBAR -->
-<div class="navbar">
+  
+<!-- SIDEBAR LAYOUT -->
+<div class="layout">
 
-  <div class="logo">
-    🎓 School Management Information System Pro
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <div class="brand">
+      🎓 SIS Admin
+    </div>
+
+    <div class="menu">
+      <div class="menu-item active" onclick="showSection('home')">Dashboard</div>
+      <div class="menu-item" onclick="showSection('students')">Students</div>
+      <div class="menu-item" onclick="showSection('results')">Results</div>
+      <div class="menu-item" onclick="showSection('fees')">Fees</div>
+    </div>
+
+    <div class="sidebar-footer">
+      <span id="adminName">Admin</span>
+      <button onclick="logoutAdmin()">Logout</button>
+      
+    </div>
   </div>
 
-  <div class="nav-links">
-    <span class="nav-item active" onclick="showSection('home')">Home</span>
-<span class="nav-item" onclick="showSection('students')">Students</span>
-<span class="nav-item" onclick="showSection('results')">Results</span>
-<span class="nav-item" onclick="showSection('fees')">Fees</span>
-  </div>
-
-  <div class="nav-right">
-    <span class="admin-badge" id="adminName">Admin</span>
-    <button class="logout-btn" onclick="logoutAdmin()">Logout</button>
+  <!-- MAIN CONTENT -->
+  <div class="main">
+  
   </div>
 
 </div>
