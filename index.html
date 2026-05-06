@@ -268,11 +268,12 @@
      ========================= -->
 <div id="loader">
   <div class="spinner"></div>
-  <p>Loading SMIS...</p>
+  
+  <p id="loadingText">Initializing Secure System...</p>
   
 </div>
 
-<div class="poster">
+<div class="poster animate-in">
 
   <!-- TITLE -->
   <h1>🎓 School Management Information System</h1>
@@ -360,6 +361,22 @@ window.addEventListener("load", () => {
 
   }, 800); // small delay for smooth effect
 });
+
+  const messages = [
+  "Initializing Secure System...",
+  "Loading Student Database...",
+  "Connecting Firebase...",
+  "Preparing Dashboard..."
+];
+
+let i = 0;
+setInterval(() => {
+  const el = document.getElementById("loadingText");
+  if (el) {
+    el.textContent = messages[i];
+    i = (i + 1) % messages.length;
+  }
+}, 800);
 </script>
 
 </body>
