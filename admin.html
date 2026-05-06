@@ -6,7 +6,12 @@
   <title>Admin Dashboard</title>
 
   <style>
-    body { font-family: Arial; background:#eef2f7; padding:20px; }
+    body {
+  font-family: Arial;
+  background:#eef2f7;
+  padding:20px;
+  display:block; /* prevents index flex from affecting layout */
+}
     h2 { text-align:center; display:none; }
 
     .section {
@@ -21,7 +26,15 @@
 
     input { width:100%; padding:8px; margin:5px 0; }
 
-    button { padding:8px; margin:3px; border:none; cursor:pointer; }
+/* LIMITING BUTTON STYLES TO ADMIN ONLY*/
+.section button,
+.loginBox button,
+.navbar button {
+  padding:8px;
+  margin:3px;
+  border:none;
+  cursor:pointer;
+}
 
     .add { background:#007bff; color:white; }
     .update { background:green; color:white; }
@@ -135,7 +148,20 @@
   background: #dc2626;
 }
     
-  
+
+    /* PREVENT GLOBAL BUTTON STYLE INTERFERENCE */
+.navbar button {
+  all: unset;
+  background: #ef4444;
+  color: white;
+  padding: 7px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.navbar button:hover {
+  background: #dc2626;
+    }
   
   </style>
 </head>
