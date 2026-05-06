@@ -8,7 +8,7 @@ body {
 }
 
 /* Smoothly reveal poster after loading screen completes */
-..poster {
+.poster {
   width: 90%;
   max-width: 850px;
   background: rgba(255,255,255,0.12);
