@@ -349,22 +349,20 @@ const messages = [
   "Preparing Dashboard..."
 ];
 
-let i = 0;
 const el = document.getElementById("loadingText");
 
-let interval;
-
 if (el) {
-  interval = setInterval(() => {
+  let i = 0;
+
+  const interval = setInterval(() => {
     el.textContent = messages[i];
     i = (i + 1) % messages.length;
-  }, 800);
-}
+  }, 600);
 
-/* stop animation when loader is removed */
-setTimeout(() => {
-  clearInterval(interval);
-}, 800);
+  setTimeout(() => {
+    clearInterval(interval);
+  }, 800);
+  }
 
 
 /* =========================
@@ -399,5 +397,11 @@ window.addEventListener("load", () => {
 
   }, 800);
 });
+
+  
+});
+  
+</script>
+
 </body>
 </html>
