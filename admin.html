@@ -218,9 +218,10 @@ onAuthStateChanged(auth, async (user) => {
   try {
 
     // 🔐 CHECK ADMIN COLLECTION ONLY
-    const snap = await getDoc(doc(db, "admins", user.uid));
-
-    if (!snap.exists()) {
+const q = await getDocs(collection(db, "admins"));
+const snap = q.docs.find(d => d.data().email === user.email);
+    
+if (!snap) {
 
       alert("Access denied: Not admin");
 
@@ -235,7 +236,7 @@ onAuthStateChanged(auth, async (user) => {
       return;
     }
 
-    const data = snap.data();
+const data = snap.data();
 
     if (data.role !== "admin") {
 
