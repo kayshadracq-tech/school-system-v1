@@ -75,3 +75,21 @@ button {
   cursor: pointer;
   border-radius: 6px;
 }
+
+/* FIX VISIBILITY CONTROL */
+#loginBox {
+  display: block;
+}
+
+#dashboard {
+  display: none;
+}
+
+/* When active */
+#dashboard.active {
+  display: block;
+}
+
+#loginBox.hidden {
+  display: none;
+}
