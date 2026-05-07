@@ -10,13 +10,12 @@
 
 <body>
 
-<!-- TOP BAR -->
 <div class="topbar">
   <h2>🎓 Teacher Panel</h2>
-  <button onclick="goHome()">Home</button>
+  <button onclick="logout()">Logout</button>
 </div>
 
-<!-- LOGIN SECTION -->
+<!-- LOGIN -->
 <div id="loginBox" class="loginBox">
 
   <h3>Teacher Login</h3>
@@ -24,92 +23,182 @@
   <input id="email" placeholder="Email">
   <input id="password" type="password" placeholder="Password">
 
-  <button onclick="loginTeacher()">Login</button>
+  <button id="loginBtn">Login</button>
 
-  <p id="error" class="error"></p>
+  <p id="error"></p>
 
 </div>
 
 <!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
 
-  <div class="infoCard">
-    <h3>Assigned Subject</h3>
-    <p id="subjectName">Loading...</p>
-  </div>
+  <h3>Welcome: <span id="teacherName"></span></h3>
+
+  <h4>Subject: <span id="subject"></span></h4>
 
   <div class="formCard">
-
-    <h3>Enter Student Marks</h3>
 
     <input id="studentId" placeholder="Student ID">
     <input id="term" placeholder="Term">
     <input id="mark" placeholder="Mark">
 
-    <button onclick="saveMark()">Save Mark</button>
+    <button id="saveBtn">Save Mark</button>
 
   </div>
 
-  <div class="tableCard">
+  <table>
+    <thead>
+      <tr>
+        <th>Student ID</th>
+        <th>Subject</th>
+        <th>Term</th>
+        <th>Mark</th>
+      </tr>
+    </thead>
 
-    <h3>My Marks</h3>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Student ID</th>
-          <th>Subject</th>
-          <th>Term</th>
-          <th>Mark</th>
-        </tr>
-      </thead>
-
-      <tbody id="marksTable"></tbody>
-    </table>
-
-  </div>
+    <tbody id="table"></tbody>
+  </table>
 
 </div>
 
-<script>
-function goHome(){
-  window.location.href = "index.html";
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  addDoc,
+  collection,
+  query,
+  where,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* FIREBASE */
+const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_PROJECT"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* ELEMENTS */
+const loginBox = document.getElementById("loginBox");
+const dashboard = document.getElementById("dashboard");
+
+let currentUser = null;
+let teacherSubject = "";
+
+/* LOGIN */
+document.getElementById("loginBtn").onclick = async () => {
+
+  try {
+
+    const cred = await signInWithEmailAndPassword(
+      auth,
+      email.value,
+      password.value
+    );
+
+  } catch (e) {
+    document.getElementById("error").innerText = e.message;
+  }
+};
+
+/* AUTH STATE */
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) return;
+
+  currentUser = user;
+
+  const snap = await getDoc(doc(db, "users", user.uid));
+
+  if (!snap.exists()) {
+    alert("No teacher profile found");
+    return;
+  }
+
+  const data = snap.data();
+
+  if (data.role !== "teacher") {
+    alert("Not a teacher account");
+    return;
+  }
+
+  teacherSubject = data.subject;
+
+  document.getElementById("teacherName").innerText = data.name;
+  document.getElementById("subject").innerText = teacherSubject;
+
+  loginBox.style.display = "none";
+  dashboard.style.display = "block";
+
+  loadMarks();
+});
+
+/* SAVE MARK */
+document.getElementById("saveBtn").onclick = async () => {
+
+  await addDoc(collection(db, "marks"), {
+    teacherId: currentUser.uid,
+    subject: teacherSubject,
+    studentId: studentId.value,
+    term: term.value,
+    mark: mark.value
+  });
+
+  loadMarks();
+};
+
+/* LOAD MARKS */
+async function loadMarks() {
+
+  const q = query(
+    collection(db, "marks"),
+    where("teacherId", "==", currentUser.uid)
+  );
+
+  const snap = await getDocs(q);
+
+  const table = document.getElementById("table");
+  table.innerHTML = "";
+
+  snap.forEach(doc => {
+
+    const m = doc.data();
+
+    const row = `
+      <tr>
+        <td>${m.studentId}</td>
+        <td>${m.subject}</td>
+        <td>${m.term}</td>
+        <td>${m.mark}</td>
+      </tr>
+    `;
+
+    table.innerHTML += row;
+  });
 }
 
-/* TEMP STRUCTURE (Firebase will replace later) */
-let teacherSubject = "Mathematics";
+/* LOGOUT */
+window.logout = () => {
+  signOut(auth);
+  location.reload();
+};
 
-/* LOGIN SIMULATION */
-function loginTeacher(){
-  document.getElementById("loginBox").style.display = "none";
-  document.getElementById("dashboard").style.display = "block";
-
-  document.getElementById("subjectName").innerText = teacherSubject;
-}
-
-/* SAVE MARK (TEMP LOCAL VERSION - Firebase later) */
-function saveMark(){
-
-  const id = document.getElementById("studentId").value;
-  const term = document.getElementById("term").value;
-  const mark = document.getElementById("mark").value;
-
-  const table = document.getElementById("marksTable");
-
-  const row = document.createElement("tr");
-
-  row.innerHTML = `
-    <td>${id}</td>
-    <td>${teacherSubject}</td>
-    <td>${term}</td>
-    <td>${mark}</td>
-  `;
-
-  table.appendChild(row);
-
-  alert("Mark saved (local demo)");
-}
 </script>
 
 </body>
-  </html>
+</html>
