@@ -17,33 +17,26 @@
 
 <!-- LOGIN -->
 <div id="loginBox" class="loginBox">
-
   <h3>Teacher Login</h3>
 
   <input id="email" placeholder="Email">
   <input id="password" type="password" placeholder="Password">
 
   <button id="loginBtn">Login</button>
-
   <p id="error"></p>
-
 </div>
 
 <!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
 
   <h3>Welcome: <span id="teacherName"></span></h3>
-
   <h4>Subject: <span id="subject"></span></h4>
 
   <div class="formCard">
-
     <input id="studentId" placeholder="Student ID">
     <input id="term" placeholder="Term">
     <input id="mark" placeholder="Mark">
-
     <button id="saveBtn">Save Mark</button>
-
   </div>
 
   <table>
@@ -82,11 +75,17 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* FIREBASE */
+/* =========================
+   FIREBASE CONFIG (IMPORTANT)
+   👉 USE EXACT SAME AS admin.html
+========================= */
 const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_PROJECT"
+  apiKey: "YOUR_SAME_API_KEY_AS_ADMIN",
+  authDomain: "school-system-748cf.firebaseapp.com",
+  projectId: "school-system-748cf",
+  storageBucket: "school-system-748cf.appspot.com",
+  messagingSenderId: "899412742738",
+  appId: "1:899412742738:web:7dc83a50b53789b196858b"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -97,18 +96,23 @@ const db = getFirestore(app);
 const loginBox = document.getElementById("loginBox");
 const dashboard = document.getElementById("dashboard");
 
+const email = document.getElementById("email");
+const password = document.getElementById("password");
+
 let currentUser = null;
 let teacherSubject = "";
 
-/* LOGIN */
+/* =========================
+   LOGIN
+========================= */
 document.getElementById("loginBtn").onclick = async () => {
 
   try {
 
-    const cred = await signInWithEmailAndPassword(
+    await signInWithEmailAndPassword(
       auth,
-      email.value,
-      password.value
+      email.value.trim(),
+      password.value.trim()
     );
 
   } catch (e) {
@@ -116,7 +120,9 @@ document.getElementById("loginBtn").onclick = async () => {
   }
 };
 
-/* AUTH STATE */
+/* =========================
+   AUTH STATE
+========================= */
 onAuthStateChanged(auth, async (user) => {
 
   if (!user) return;
@@ -126,14 +132,14 @@ onAuthStateChanged(auth, async (user) => {
   const snap = await getDoc(doc(db, "users", user.uid));
 
   if (!snap.exists()) {
-    alert("No teacher profile found");
+    alert("Teacher profile not found in Firestore");
     return;
   }
 
   const data = snap.data();
 
   if (data.role !== "teacher") {
-    alert("Not a teacher account");
+    alert("Access denied: Not a teacher");
     return;
   }
 
@@ -148,7 +154,9 @@ onAuthStateChanged(auth, async (user) => {
   loadMarks();
 });
 
-/* SAVE MARK */
+/* =========================
+   SAVE MARK
+========================= */
 document.getElementById("saveBtn").onclick = async () => {
 
   await addDoc(collection(db, "marks"), {
@@ -162,7 +170,9 @@ document.getElementById("saveBtn").onclick = async () => {
   loadMarks();
 };
 
-/* LOAD MARKS */
+/* =========================
+   LOAD MARKS
+========================= */
 async function loadMarks() {
 
   const q = query(
@@ -179,7 +189,7 @@ async function loadMarks() {
 
     const m = doc.data();
 
-    const row = `
+    table.innerHTML += `
       <tr>
         <td>${m.studentId}</td>
         <td>${m.subject}</td>
@@ -187,14 +197,14 @@ async function loadMarks() {
         <td>${m.mark}</td>
       </tr>
     `;
-
-    table.innerHTML += row;
   });
 }
 
-/* LOGOUT */
-window.logout = () => {
-  signOut(auth);
+/* =========================
+   LOGOUT
+========================= */
+window.logout = async () => {
+  await signOut(auth);
   location.reload();
 };
 
