@@ -46,6 +46,7 @@
         <th>Subject</th>
         <th>Term</th>
         <th>Mark</th>
+        <th>Actions</th>
       </tr>
     </thead>
 
@@ -72,10 +73,12 @@ import {
   collection,
   query,
   where,
-  getDocs
+  getDocs,
+  deleteDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* FIREBASE CONFIG (SAME AS ADMIN) */
+/* FIREBASE CONFIG (same as admin) */
 const firebaseConfig = {
   apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
   authDomain: "school-system-748cf.firebaseapp.com",
@@ -89,7 +92,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* ELEMENTS */
+/* UI ELEMENTS */
 const loginBox = document.getElementById("loginBox");
 const dashboard = document.getElementById("dashboard");
 
@@ -119,7 +122,7 @@ onAuthStateChanged(auth, async (user) => {
 
   currentUser = user;
 
-  /* ✅ FIXED: USING teachers collection (your real DB) */
+  /* GET TEACHER PROFILE */
   const snap = await getDoc(doc(db, "teachers", user.uid));
 
   if (!snap.exists()) {
@@ -130,7 +133,7 @@ onAuthStateChanged(auth, async (user) => {
   const data = snap.data();
 
   if (data.role !== "teacher") {
-    alert("Access denied: Not a teacher");
+    alert("Access denied");
     return;
   }
 
@@ -152,18 +155,23 @@ document.getElementById("saveBtn").onclick = async () => {
   const term = document.getElementById("term").value;
   const mark = document.getElementById("mark").value;
 
+  if (!studentId || !term || !mark) {
+    return alert("Fill all fields");
+  }
+
   await addDoc(collection(db, "marks"), {
     teacherId: currentUser.uid,
     subject: teacherSubject,
-    studentId: studentId,
-    term: term,
-    mark: mark
+    studentId,
+    term,
+    mark,
+    createdAt: serverTimestamp()
   });
 
   loadMarks();
 };
 
-/* LOAD MARKS */
+/* LOAD MARKS + 24HR RULE */
 async function loadMarks() {
 
   const q = query(
@@ -176,18 +184,67 @@ async function loadMarks() {
   const table = document.getElementById("table");
   table.innerHTML = "";
 
+  const now = Date.now();
+
   snap.forEach(docSnap => {
 
     const m = docSnap.data();
 
-    table.innerHTML += `
-      <tr>
-        <td>${m.studentId}</td>
-        <td>${m.subject}</td>
-        <td>${m.term}</td>
-        <td>${m.mark}</td>
-      </tr>
+    const created = m.createdAt?.toDate?.()?.getTime?.() || 0;
+
+    const canEdit = (now - created) <= 24 * 60 * 60 * 1000;
+
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${m.studentId}</td>
+      <td>${m.subject}</td>
+      <td>${m.term}</td>
+      <td>${m.mark}</td>
+      <td></td>
     `;
+
+    const action = row.children[4];
+
+    /* EDIT */
+    const edit = document.createElement("button");
+    edit.textContent = "Edit";
+    edit.className = "edit";
+
+    if (!canEdit) {
+      edit.disabled = true;
+      edit.style.opacity = "0.4";
+    }
+
+    edit.onclick = () => {
+      if (!canEdit) return alert("Edit expired (24h rule)");
+
+      document.getElementById("studentId").value = m.studentId;
+      document.getElementById("term").value = m.term;
+      document.getElementById("mark").value = m.mark;
+    };
+
+    /* DELETE */
+    const del = document.createElement("button");
+    del.textContent = "Delete";
+    del.className = "delete";
+
+    if (!canEdit) {
+      del.disabled = true;
+      del.style.opacity = "0.4";
+    }
+
+    del.onclick = async () => {
+      if (!canEdit) return alert("Delete expired (24h rule)");
+
+      await deleteDoc(doc(db, "marks", docSnap.id));
+      loadMarks();
+    };
+
+    action.appendChild(edit);
+    action.appendChild(del);
+
+    table.appendChild(row);
   });
 }
 
