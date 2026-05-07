@@ -215,32 +215,53 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
 
-  // 🔐 CHECK ROLE FROM FIRESTORE USERS COLLECTION
-  const snap = await getDoc(doc(db, "users", user.uid));
+  try {
 
-  if (!snap.exists() || snap.data().role !== "admin") {
+    // 🔐 CHECK ADMIN COLLECTION ONLY
+    const snap = await getDoc(doc(db, "admins", user.uid));
 
-    alert("Access denied: Not admin");
+    if (!snap.exists()) {
 
-    await signOut(auth);
+      alert("Access denied: Not admin");
 
-    loginGate.style.display = "flex";
+      await signOut(auth);
 
-    document.querySelectorAll(".section").forEach(s => {
-      s.style.display = "none";
-    });
+      loginGate.style.display = "flex";
 
-    return;
+      document.querySelectorAll(".section").forEach(s => {
+        s.style.display = "none";
+      });
+
+      return;
+    }
+
+    const data = snap.data();
+
+    if (data.role !== "admin") {
+
+      alert("Invalid admin role");
+
+      await signOut(auth);
+
+      loginGate.style.display = "flex";
+
+      return;
+    }
+
+    // ✅ SUCCESS LOGIN
+    document.getElementById("adminName").innerText = data.email || user.email;
+
+    loginGate.style.display = "none";
+
+    showSection("home");
+    loadStudents();
+    loadResults();
+    loadFees();
+
+  } catch (err) {
+    console.error(err);
+    alert("Error loading admin profile");
   }
-
-  // ✅ ONLY ADMIN REACHES HERE
-  document.getElementById("adminName").innerText = user.email;
-  loginGate.style.display = "none";
-
-  showSection("home");
-  loadStudents();
-  loadResults();
-  loadFees();
 });
 
 /* STATES */
