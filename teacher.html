@@ -10,7 +10,6 @@
 
 <body>
 
-<!-- TOP BAR -->
 <div class="topbar">
   <h2>🎓 Teacher Panel</h2>
   <button onclick="logout()">Logout</button>
@@ -28,12 +27,10 @@
 </div>
 
 <!-- DASHBOARD -->
-<div id="dashboard">
+<div id="dashboard" class="hidden">
 
-  <div class="infoCard">
-    <h3>Welcome: <span id="teacherName"></span></h3>
-    <h4>Subject: <span id="subject"></span></h4>
-  </div>
+  <h3>Welcome: <span id="teacherName"></span></h3>
+  <h4>Subject: <span id="subject"></span></h4>
 
   <div class="formCard">
     <input id="studentId" placeholder="Student ID">
@@ -42,21 +39,18 @@
     <button id="saveBtn">Save Mark</button>
   </div>
 
-  <div class="tableCard">
-    <table>
-      <thead>
-        <tr>
-          <th>Student ID</th>
-          <th>Subject</th>
-          <th>Term</th>
-          <th>Mark</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-
-      <tbody id="table"></tbody>
-    </table>
-  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Student ID</th>
+        <th>Subject</th>
+        <th>Term</th>
+        <th>Mark</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="table"></tbody>
+  </table>
 
 </div>
 
@@ -83,12 +77,12 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* FIREBASE */
+/* ✅ SAME CONFIG AS ADMIN (DO NOT CHANGE) */
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY_HERE",
+  apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
   authDomain: "school-system-748cf.firebaseapp.com",
   projectId: "school-system-748cf",
-  storageBucket: "school-system-748cf.appspot.com",
+  storageBucket: "school-system-748cf.firebaseapp.com",
   messagingSenderId: "899412742738",
   appId: "1:899412742738:web:7dc83a50b53789b196858b"
 };
@@ -128,6 +122,7 @@ onAuthStateChanged(auth, async (user) => {
 
   currentUser = user;
 
+  /* READ TEACHER PROFILE */
   const snap = await getDoc(doc(db, "teachers", user.uid));
 
   if (!snap.exists()) {
@@ -147,7 +142,7 @@ onAuthStateChanged(auth, async (user) => {
   document.getElementById("teacherName").innerText = data.name;
   document.getElementById("subject").innerText = teacherSubject;
 
-  /* CLEAN SWITCH */
+  /* SHOW DASHBOARD ONLY AFTER LOGIN */
   loginBox.style.display = "none";
   dashboard.style.display = "block";
 
@@ -190,14 +185,9 @@ async function loadMarks() {
   const table = document.getElementById("table");
   table.innerHTML = "";
 
-  const now = Date.now();
-
   snap.forEach(docSnap => {
 
     const m = docSnap.data();
-
-    const created = m.createdAt?.toDate?.()?.getTime?.() || 0;
-    const canEdit = (now - created) <= 24 * 60 * 60 * 1000;
 
     const row = document.createElement("tr");
 
@@ -209,19 +199,16 @@ async function loadMarks() {
       <td></td>
     `;
 
-    const action = row.children[4];
-
     const del = document.createElement("button");
     del.textContent = "Delete";
+    del.className = "delete";
 
-    del.disabled = !canEdit;
     del.onclick = async () => {
-      if (!canEdit) return alert("24h limit reached");
       await deleteDoc(doc(db, "marks", docSnap.id));
       loadMarks();
     };
 
-    action.appendChild(del);
+    row.children[4].appendChild(del);
     table.appendChild(row);
   });
 }
