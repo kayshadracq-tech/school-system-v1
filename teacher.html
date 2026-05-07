@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Dashboard</title>
+
+  <link rel="stylesheet" href="styles/global.css">
+  <link rel="stylesheet" href="styles/teacher.css">
+</head>
+
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <h2>🎓 Teacher Panel</h2>
+  <button onclick="goHome()">Home</button>
+</div>
+
+<!-- LOGIN SECTION -->
+<div id="loginBox" class="loginBox">
+
+  <h3>Teacher Login</h3>
+
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+
+  <button onclick="loginTeacher()">Login</button>
+
+  <p id="error" class="error"></p>
+
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="hidden">
+
+  <div class="infoCard">
+    <h3>Assigned Subject</h3>
+    <p id="subjectName">Loading...</p>
+  </div>
+
+  <div class="formCard">
+
+    <h3>Enter Student Marks</h3>
+
+    <input id="studentId" placeholder="Student ID">
+    <input id="term" placeholder="Term">
+    <input id="mark" placeholder="Mark">
+
+    <button onclick="saveMark()">Save Mark</button>
+
+  </div>
+
+  <div class="tableCard">
+
+    <h3>My Marks</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Student ID</th>
+          <th>Subject</th>
+          <th>Term</th>
+          <th>Mark</th>
+        </tr>
+      </thead>
+
+      <tbody id="marksTable"></tbody>
+    </table>
+
+  </div>
+
+</div>
+
+<script>
+function goHome(){
+  window.location.href = "index.html";
+}
+
+/* TEMP STRUCTURE (Firebase will replace later) */
+let teacherSubject = "Mathematics";
+
+/* LOGIN SIMULATION */
+function loginTeacher(){
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
+
+  document.getElementById("subjectName").innerText = teacherSubject;
+}
+
+/* SAVE MARK (TEMP LOCAL VERSION - Firebase later) */
+function saveMark(){
+
+  const id = document.getElementById("studentId").value;
+  const term = document.getElementById("term").value;
+  const mark = document.getElementById("mark").value;
+
+  const table = document.getElementById("marksTable");
+
+  const row = document.createElement("tr");
+
+  row.innerHTML = `
+    <td>${id}</td>
+    <td>${teacherSubject}</td>
+    <td>${term}</td>
+    <td>${mark}</td>
+  `;
+
+  table.appendChild(row);
+
+  alert("Mark saved (local demo)");
+}
+</script>
+
+</body>
+  </html>
