@@ -164,7 +164,6 @@ import {
 import {
   getFirestore,
   collection,
-  addDoc,
   getDocs,
   deleteDoc,
   doc,
@@ -172,6 +171,7 @@ import {
   setDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+/* FIREBASE */
 const firebaseConfig = {
   apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
   authDomain: "school-system-748cf.firebaseapp.com",
@@ -184,41 +184,45 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+
+/* ELEMENTS */
 const adminLoginBtn = document.getElementById("adminLoginBtn");
 const adminEmail = document.getElementById("adminEmail");
 const adminPass = document.getElementById("adminPass");
 const adminError = document.getElementById("adminError");
+const loginGate = document.getElementById("loginGate");
 
-  
 /* LOGIN */
 adminLoginBtn.onclick = async () => {
   adminError.innerText = "";
   try {
-    await signInWithEmailAndPassword(auth, adminEmail.value.trim(), adminPass.value.trim());
+    await signInWithEmailAndPassword(
+      auth,
+      adminEmail.value.trim(),
+      adminPass.value.trim()
+    );
   } catch {
     adminError.innerText = "Invalid email or password";
   }
 };
 
-/* AUTH */
+/* AUTH STATE */
 onAuthStateChanged(auth, (user) => {
   if (!user) return;
 
-  // show admin email
   document.getElementById("adminName").innerText = user.email;
+  loginGate.style.display = "none";
 
-  loginGate.remove();
-
-
-  // hide all sections first
-  document.querySelectorAll(".section").forEach(s => s.style.display = "none");
-
-  // show only home
   showSection("home");
+  loadStudents();
+  loadResults();
+  loadFees();
 });
 
 /* STATES */
-let sEdit=null, rEdit=null, fEdit=null;
+let sEdit = null;
+let rEdit = null;
+let fEdit = null;
 
 /* INPUTS */
 const name = document.getElementById("name");
@@ -243,32 +247,50 @@ const studentTable = document.getElementById("studentTable");
 const resultsTable = document.getElementById("resultsTable");
 const feesTable = document.getElementById("feesTable");
 
-/* CHECK ID */
-async function idExists(id){
-  const snap = await getDocs(collection(db,"students"));
+/* =========================
+   NAVIGATION FIX
+========================= */
+window.showSection = (section) => {
+
+  document.querySelectorAll(".menu-item").forEach(i => i.classList.remove("active"));
+  document.querySelectorAll(".section").forEach(s => s.style.display = "none");
+
+  const el = document.getElementById(section);
+  if (el) el.style.display = "block";
+
+  const map = { home: 0, students: 1, results: 2, fees: 3 };
+  const items = document.querySelectorAll(".menu-item");
+
+  if (items[map[section]]) {
+    items[map[section]].classList.add("active");
+  }
+};
+
+/* =========================
+   STUDENTS
+========================= */
+
+async function idExists(id) {
+  const snap = await getDocs(collection(db, "students"));
   return snap.docs.some(d => d.data().studentId === id);
 }
 
-/* STUDENTS */
-addStudentBtn.onclick = async () => {
-
+window.addStudentBtn.onclick = async () => {
   const id = studentId.value.trim();
-  const mail = email.value.trim();
-  const pass = password.value.trim();
-
-  if (!id || !mail || !pass) return alert("Email, ID, password required");
 
   if (await idExists(id)) return alert("Student ID exists");
 
   try {
+    const userCred = await createUserWithEmailAndPassword(
+      auth,
+      email.value.trim(),
+      password.value.trim()
+    );
 
-    const userCred = await createUserWithEmailAndPassword(auth, mail, pass);
-    const uid = userCred.user.uid;
-
-    await setDoc(doc(db,"students", id),{
-      uid,
+    await setDoc(doc(db, "students", id), {
+      uid: userCred.user.uid,
       name: name.value,
-      email: mail,
+      email: email.value,
       studentId: id,
       age: age.value,
       grade: grade.value,
@@ -276,50 +298,44 @@ addStudentBtn.onclick = async () => {
     });
 
     loadStudents();
-  alert("Student added successfully");  
-
-    // clear form after adding
-name.value = "";
-email.value = "";
-studentId.value = "";
-password.value = "";
-age.value = "";
-grade.value = "";
-classInput.value = "";
-
-  } catch(err){
-    alert(err.message);
+    alert("Student added");
+  } catch (e) {
+    alert(e.message);
   }
-
 };
 
-updateStudentBtn.onclick = async () => {
+window.updateStudentBtn.onclick = async () => {
   if (!sEdit) return alert("Select student");
 
-  await updateDoc(doc(db,"students",sEdit),{
-    name:name.value,
-    email:email.value,
-    studentId:studentId.value,
-    age:age.value,
-    grade:grade.value,
-    class:classInput.value
+  await updateDoc(doc(db, "students", sEdit), {
+    name: name.value,
+    email: email.value,
+    studentId: studentId.value,
+    age: age.value,
+    grade: grade.value,
+    class: classInput.value
   });
 
-  sEdit=null;
   loadStudents();
+  sEdit = null;
 };
 
-async function loadStudents(){
-  studentTable.innerHTML="";
-  const snap = await getDocs(collection(db,"students"));
-  
-  document.getElementById("totalStudents").innerText = snap.size;
-  
-  snap.forEach(d=>{
-    const s=d.data();
+/* =========================
+   LOAD STUDENTS
+========================= */
+async function loadStudents() {
+  studentTable.innerHTML = "";
 
-    const row=document.createElement("tr");
-    row.innerHTML=`
+  const snap = await getDocs(collection(db, "students"));
+
+  document.getElementById("totalStudents").innerText = snap.size;
+
+  snap.forEach(d => {
+    const s = d.data();
+
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
       <td>${s.name}</td>
       <td>${s.email}</td>
       <td>${s.studentId}</td>
@@ -329,26 +345,26 @@ async function loadStudents(){
       <td></td>
     `;
 
-    const action=row.children[6];
+    const action = row.children[6];
 
-    const edit=document.createElement("button");
-    edit.textContent="Edit";
-    edit.className="edit";
-    edit.onclick=()=>{
-      sEdit=d.id;
-      name.value=s.name;
-      email.value=s.email;
-      studentId.value=s.studentId;
-      age.value=s.age;
-      grade.value=s.grade;
-      classInput.value=s.class;
+    const edit = document.createElement("button");
+    edit.className = "edit";
+    edit.textContent = "Edit";
+    edit.onclick = () => {
+      sEdit = d.id;
+      name.value = s.name;
+      email.value = s.email;
+      studentId.value = s.studentId;
+      age.value = s.age;
+      grade.value = s.grade;
+      classInput.value = s.class;
     };
 
-    const del=document.createElement("button");
-    del.textContent="Delete";
-    del.className="delete";
-    del.onclick=async()=>{
-      await deleteDoc(doc(db,"students",d.id));
+    const del = document.createElement("button");
+    del.className = "delete";
+    del.textContent = "Delete";
+    del.onclick = async () => {
+      await deleteDoc(doc(db, "students", d.id));
       loadStudents();
     };
 
@@ -359,39 +375,35 @@ async function loadStudents(){
   });
 }
 
-/* RESULTS */
-addResultBtn.onclick = async () => {
-  await setDoc(doc(db,"results", r_studentId.value + "_" + subject.value + "_" + term.value), {
-  studentId: r_studentId.value,
-  subject: subject.value,
-  term: term.value,
-  mark: mark.value
-});
-  loadResults();
-};
+/* =========================
+   RESULTS
+========================= */
 
-updateResultBtn.onclick = async () => {
-  await updateDoc(doc(db,"results",rEdit),{
-    studentId:r_studentId.value,
-    subject:subject.value,
-    term:term.value,
-    mark:mark.value
+window.addResultBtn.onclick = async () => {
+  await setDoc(doc(db, "results",
+    r_studentId.value + "_" + subject.value + "_" + term.value
+  ), {
+    studentId: r_studentId.value,
+    subject,
+    term,
+    mark
   });
-  rEdit=null;
+
   loadResults();
 };
 
-async function loadResults(){
-  resultsTable.innerHTML="";
-  const snap=await getDocs(collection(db,"results"));
+async function loadResults() {
+  resultsTable.innerHTML = "";
+
+  const snap = await getDocs(collection(db, "results"));
 
   document.getElementById("totalResults").innerText = snap.size;
 
-  snap.forEach(d=>{
-    const r=d.data();
+  snap.forEach(d => {
+    const r = d.data();
 
-    const row=document.createElement("tr");
-    row.innerHTML=`
+    const row = document.createElement("tr");
+    row.innerHTML = `
       <td>${r.studentId}</td>
       <td>${r.subject}</td>
       <td>${r.term}</td>
@@ -399,76 +411,64 @@ async function loadResults(){
       <td></td>
     `;
 
-    const action=row.children[4];
+    const action = row.children[4];
 
     const edit = document.createElement("button");
-edit.textContent = "Edit";
-edit.className = "edit";
-edit.onclick = () => {
-  rEdit = d.id;
+    edit.className = "edit";
+    edit.textContent = "Edit";
+    edit.onclick = () => {
+      rEdit = d.id;
+      r_studentId.value = r.studentId;
+      subject.value = r.subject;
+      term.value = r.term;
+      mark.value = r.mark;
+    };
 
-  r_studentId.value = r.studentId;
-  subject.value = r.subject;
-  term.value = r.term;
-  mark.value = r.mark;
-};
+    const del = document.createElement("button");
+    del.className = "delete";
+    del.textContent = "Delete";
+    del.onclick = async () => {
+      await deleteDoc(doc(db, "results", d.id));
+      loadResults();
+    };
 
-const del = document.createElement("button");
-del.textContent = "Delete";
-del.className = "delete";
-del.onclick = async () => {
-  await deleteDoc(doc(db, "results", d.id));
-  loadResults();
-};
-
-action.appendChild(edit);
-action.appendChild(del);
+    action.appendChild(edit);
+    action.appendChild(del);
 
     resultsTable.appendChild(row);
   });
 }
 
-/* FEES */
-addFeesBtn.onclick = async () => {
-  const t = Number(total.value)||0;
-  const p = Number(paid.value)||0;
+/* =========================
+   FEES
+========================= */
 
-  await setDoc(doc(db,"fees", f_studentId.value), {
-  studentId: f_studentId.value,
-  totalFees: t,
-  amountPaid: p,
-  balance: t - p
-});
+window.addFeesBtn.onclick = async () => {
+  const t = Number(total.value) || 0;
+  const p = Number(paid.value) || 0;
 
-  loadFees();
-};
-
-updateFeesBtn.onclick = async () => {
-  const t = Number(total.value)||0;
-  const p = Number(paid.value)||0;
-
-  await updateDoc(doc(db,"fees",fEdit),{
-    studentId:f_studentId.value,
-    totalFees:t,
-    amountPaid:p,
-    balance:t-p
+  await setDoc(doc(db, "fees", f_studentId.value), {
+    studentId: f_studentId.value,
+    totalFees: t,
+    amountPaid: p,
+    balance: t - p
   });
 
-  fEdit=null;
   loadFees();
 };
 
-async function loadFees(){
-  feesTable.innerHTML="";
-  const snap=await getDocs(collection(db,"fees"));
+async function loadFees() {
+  feesTable.innerHTML = "";
+
+  const snap = await getDocs(collection(db, "fees"));
 
   document.getElementById("totalFees").innerText = snap.size;
 
-  snap.forEach(d=>{
-    const f=d.data();
+  snap.forEach(d => {
+    const f = d.data();
 
-    const row=document.createElement("tr");
-    row.innerHTML=`
+    const row = document.createElement("tr");
+    row.innerHTML = `
       <td>${f.studentId}</td>
       <td>${f.totalFees}</td>
       <td>${f.amountPaid}</td>
@@ -476,25 +476,15 @@ async function loadFees(){
       <td></td>
     `;
 
-    const action=row.children[4];
+    const action = row.children[4];
 
-    const edit=document.createElement("button");
-    edit.textContent="Edit";
-    edit.className="edit";
-    edit.onclick=()=>{
-      fEdit=d.id;
-      f_studentId.value=f.studentId;
-      total.value=f.totalFees;
-      paid.value=f.amountPaid;
-    };
+    const edit = document.createElement("button");
+    edit.className = "edit";
+    edit.textContent = "Edit";
 
-    const del=document.createElement("button");
-    del.textContent="Delete";
-    del.className="delete";
-    del.onclick=async()=>{
-      await deleteDoc(doc(db,"fees",d.id));
-      loadFees();
-    };
+    const del = document.createElement("button");
+    del.className = "delete";
+    del.textContent = "Delete";
 
     action.appendChild(edit);
     action.appendChild(del);
@@ -502,75 +492,7 @@ async function loadFees(){
     feesTable.appendChild(row);
   });
 }
-
-/* INIT */
-loadStudents();
-loadResults();
-loadFees();
-
-
-
-
-// =======================
-// CLEAN SIDEBAR NAVIGATION FIX
-// =======================
-
-window.showSection = (section) => {
-
-  // remove active from all menu items
-  document.querySelectorAll(".menu-item").forEach(item => {
-    item.classList.remove("active");
-  });
-
-  // hide all sections
-  document.querySelectorAll(".section").forEach(sec => {
-    sec.style.display = "none";
-  });
-
-  // show selected section
-  const activeSection = document.getElementById(section);
-  if (activeSection) {
-    activeSection.style.display = "block";
-  }
-
-  // activate sidebar item safely
-  const map = {
-    home: 0,
-    students: 1,
-    results: 2,
-    fees: 3
-  };
-
-  const items = document.querySelectorAll(".menu-item");
-  if (items[map[section]]) {
-    items[map[section]].classList.add("active");
-  }
-};
-
-
-// =======================
-// LOGOUT FUNCTION
-// =======================
-
-window.logoutAdmin = async () => {
-  try {
-    // Sign out current admin user
-    await signOut(auth);
-
-    // Show login screen again
-    document.body.innerHTML = `
-      <div id="loginGate" style="display:flex;justify-content:center;align-items:center;height:100vh;background:#eef2f7;">
-        <div style="background:white;padding:25px;border-radius:10px;width:320px;text-align:center;">
-          <h3>Admin Login</h3>
-          <p>Please refresh the page to login again</p>
-        </div>
-      </div>
-    `;
-
-  } catch (err) {
-    alert("Logout failed: " + err.message);
-  }
-};
+  
 </script>
 
 </body>
