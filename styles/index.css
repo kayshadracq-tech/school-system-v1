@@ -31,6 +31,15 @@
   font-size: 14px;
   line-height: 1.6;
 }
+  /* Portal text*/
+.portal-text{
+  margin-top: 20px;
+  margin-bottom: 15px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffffff;
+  text-align: center;
+}
 
 /* =========================
    LOADING SCREEN
