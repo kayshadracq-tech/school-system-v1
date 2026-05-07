@@ -439,12 +439,27 @@ async function loadResults() {
   });
 }
 
+
 /* =========================
    FEES
 ========================= */
 
 window.addFeesBtn.onclick = async () => {
-  window.updateFeesBtn.onclick = async () => {
+
+  const t = Number(total.value) || 0;
+  const p = Number(paid.value) || 0;
+
+  await setDoc(doc(db, "fees", f_studentId.value), {
+    studentId: f_studentId.value,
+    totalFees: t,
+    amountPaid: p,
+    balance: t - p
+  });
+
+  loadFees();
+};
+
+window.updateFeesBtn.onclick = async () => {
 
   if (!fEdit) return alert("Select fees record");
 
@@ -462,20 +477,9 @@ window.addFeesBtn.onclick = async () => {
 
   loadFees();
 };
-  const t = Number(total.value) || 0;
-  const p = Number(paid.value) || 0;
-
-  await setDoc(doc(db, "fees", f_studentId.value), {
-    studentId: f_studentId.value,
-    totalFees: t,
-    amountPaid: p,
-    balance: t - p
-  });
-
-  loadFees();
-};
 
 async function loadFees() {
+
   feesTable.innerHTML = "";
 
   const snap = await getDocs(collection(db, "fees"));
@@ -483,9 +487,11 @@ async function loadFees() {
   document.getElementById("totalFees").innerText = snap.size;
 
   snap.forEach(d => {
+
     const f = d.data();
 
     const row = document.createElement("tr");
+
     row.innerHTML = `
       <td>${f.studentId}</td>
       <td>${f.totalFees}</td>
@@ -496,26 +502,39 @@ async function loadFees() {
 
     const action = row.children[4];
 
-const edit = document.createElement("button");
-edit.className = "edit";
-edit.textContent = "Edit";
+    const edit = document.createElement("button");
 
-edit.onclick = () => {
-  fEdit = d.id;
+    edit.className = "edit";
+    edit.textContent = "Edit";
 
-  f_studentId.value = f.studentId;
-  total.value = f.totalFees;
-  paid.value = f.amountPaid;
-};
+    edit.onclick = () => {
 
-const del = document.createElement("button");
-del.className = "delete";
-del.textContent = "Delete";
+      fEdit = d.id;
 
-del.onclick = async () => {
-  await deleteDoc(doc(db, "fees", d.id));
-  loadFees();
-};
+      f_studentId.value = f.studentId;
+      total.value = f.totalFees;
+      paid.value = f.amountPaid;
+    };
+
+    const del = document.createElement("button");
+
+    del.className = "delete";
+    del.textContent = "Delete";
+
+    del.onclick = async () => {
+
+      await deleteDoc(doc(db, "fees", d.id));
+
+      loadFees();
+    };
+
+    action.appendChild(edit);
+    action.appendChild(del);
+
+    feesTable.appendChild(row);
+  });
+}
+    
 /* LOGOUT */
 window.logoutAdmin = async () => {
 
