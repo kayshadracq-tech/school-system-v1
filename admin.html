@@ -381,13 +381,13 @@ async function loadStudents() {
 
 window.addResultBtn.onclick = async () => {
   await setDoc(doc(db, "results",
-    r_studentId.value + "_" + subject.value + "_" + term.value
-  ), {
-    studentId: r_studentId.value,
-    subject,
-    term,
-    mark
-  });
+  r_studentId.value + "_" + subject.value + "_" + term.value
+), {
+  studentId: r_studentId.value,
+  subject: subject.value,
+  term: term.value,
+  mark: mark.value
+});
 
   loadResults();
 };
@@ -444,6 +444,24 @@ async function loadResults() {
 ========================= */
 
 window.addFeesBtn.onclick = async () => {
+  window.updateFeesBtn.onclick = async () => {
+
+  if (!fEdit) return alert("Select fees record");
+
+  const t = Number(total.value) || 0;
+  const p = Number(paid.value) || 0;
+
+  await updateDoc(doc(db, "fees", fEdit), {
+    studentId: f_studentId.value,
+    totalFees: t,
+    amountPaid: p,
+    balance: t - p
+  });
+
+  fEdit = null;
+
+  loadFees();
+};
   const t = Number(total.value) || 0;
   const p = Number(paid.value) || 0;
 
@@ -478,20 +496,47 @@ async function loadFees() {
 
     const action = row.children[4];
 
-    const edit = document.createElement("button");
-    edit.className = "edit";
-    edit.textContent = "Edit";
+const edit = document.createElement("button");
+edit.className = "edit";
+edit.textContent = "Edit";
 
-    const del = document.createElement("button");
-    del.className = "delete";
-    del.textContent = "Delete";
+edit.onclick = () => {
+  fEdit = d.id;
 
-    action.appendChild(edit);
-    action.appendChild(del);
+  f_studentId.value = f.studentId;
+  total.value = f.totalFees;
+  paid.value = f.amountPaid;
+};
 
-    feesTable.appendChild(row);
-  });
-}
+const del = document.createElement("button");
+del.className = "delete";
+del.textContent = "Delete";
+
+del.onclick = async () => {
+  await deleteDoc(doc(db, "fees", d.id));
+  loadFees();
+};
+/* LOGOUT */
+window.logoutAdmin = async () => {
+
+  try {
+
+    await signOut(auth);
+
+    loginGate.style.display = "flex";
+
+    document.querySelectorAll(".section").forEach(section => {
+      section.style.display = "none";
+    });
+
+  } catch (err) {
+
+    alert("Logout failed: " + err.message);
+
+  }
+
+};
+               
   
 </script>
 
