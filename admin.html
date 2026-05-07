@@ -208,9 +208,32 @@ adminLoginBtn.onclick = async () => {
 };
 
 /* AUTH STATE */
-onAuthStateChanged(auth, (user) => {
-  if (!user) return;
+onAuthStateChanged(auth, async (user) => {
 
+  if (!user) {
+    loginGate.style.display = "flex";
+    return;
+  }
+
+  // 🔐 CHECK ROLE FROM FIRESTORE USERS COLLECTION
+  const snap = await getDoc(doc(db, "users", user.uid));
+
+  if (!snap.exists() || snap.data().role !== "admin") {
+
+    alert("Access denied: Not admin");
+
+    await signOut(auth);
+
+    loginGate.style.display = "flex";
+
+    document.querySelectorAll(".section").forEach(s => {
+      s.style.display = "none";
+    });
+
+    return;
+  }
+
+  // ✅ ONLY ADMIN REACHES HERE
   document.getElementById("adminName").innerText = user.email;
   loginGate.style.display = "none";
 
