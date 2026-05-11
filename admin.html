@@ -95,7 +95,9 @@
   <table>
     <thead>
       <tr>
-        <th>Name</th><th>Email</th><th>ID</th><th>Age</th><th>Grade</th><th>Class</th><th>Actions</th>
+        <th>Name</th><th>Email</th><th>ID</th>
+        <th>Age</th><th>Grade</th><th>Class</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody id="studentTable"></tbody>
@@ -112,14 +114,14 @@
   <input id="subject" placeholder="Subject">
   <input id="term" placeholder="Term">
   <input id="mark" placeholder="Mark">
-
+  <input id="year" placeholder="Year (e.g 2026)">
   <button id="addResultBtn" class="add">Add Result</button>
   <button id="updateResultBtn" class="update">Update Result</button>
 
   <table>
     <thead>
       <tr>
-        <th>ID</th><th>Subject</th><th>Term</th><th>Mark</th><th>Actions</th>
+<th>ID</th><th>Subject</th><th>Term</th><th>Mark</th><th>Year</th><th>Actions</th>
       </tr>
     </thead>
     <tbody id="resultsTable"></tbody>
@@ -283,6 +285,7 @@ const r_studentId = document.getElementById("r_studentId");
 const subject = document.getElementById("subject");
 const term = document.getElementById("term");
 const mark = document.getElementById("mark");
+const year = document.getElementById("year"); 
 
 const f_studentId = document.getElementById("f_studentId");
 const total = document.getElementById("total");
@@ -432,7 +435,8 @@ window.addResultBtn.onclick = async () => {
   studentId: r_studentId.value,
   subject: subject.value,
   term: term.value,
-  mark: mark.value
+  mark: mark.value,
+  year: year.value
 });
 
   loadResults();
@@ -476,13 +480,14 @@ async function loadResults() {
 
     const row = document.createElement("tr");
 
-    row.innerHTML = `
-      <td>${r.studentId}</td>
-      <td>${r.subject}</td>
-      <td>${r.term}</td>
-      <td>${r.mark}</td>
-      <td></td>
-    `;
+row.innerHTML = `
+  <td>${r.studentId}</td>
+  <td>${r.subject}</td>
+  <td>${r.term}</td>
+  <td>${r.mark}</td>
+  <td>${r.year || ""}</td>
+  <td></td>
+`;
 
     const action = row.children[4];
 
