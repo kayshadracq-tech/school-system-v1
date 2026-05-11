@@ -439,6 +439,7 @@ window.addResultBtn.onclick = async () => {
 };
 
 async function loadResults() {
+
   resultsTable.innerHTML = "";
 
   const snap = await getDocs(collection(db, "marks"));
@@ -446,9 +447,11 @@ async function loadResults() {
   document.getElementById("totalResults").innerText = snap.size;
 
   snap.forEach(d => {
+
     const r = d.data();
 
     const row = document.createElement("tr");
+
     row.innerHTML = `
       <td>${r.studentId}</td>
       <td>${r.subject}</td>
@@ -456,30 +459,6 @@ async function loadResults() {
       <td>${r.mark}</td>
       <td></td>
     `;
-
-    const action = row.children[4];
-
-    const edit = document.createElement("button");
-    edit.className = "edit";
-    edit.textContent = "Edit";
-    edit.onclick = () => {
-      rEdit = d.id;
-      r_studentId.value = r.studentId;
-      subject.value = r.subject;
-      term.value = r.term;
-      mark.value = r.mark;
-    };
-
-    const del = document.createElement("button");
-    del.className = "delete";
-    del.textContent = "Delete";
-    del.onclick = async () => {
-      await deleteDoc(doc(db, "marks", d.id));
-      loadResults();
-    };
-
-    action.appendChild(edit);
-    action.appendChild(del);
 
     resultsTable.appendChild(row);
   });
