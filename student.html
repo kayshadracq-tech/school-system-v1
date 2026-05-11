@@ -5,49 +5,53 @@
   <title>Student Portal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- GLOBAL FIRST -->
   <link rel="stylesheet" href="styles/global.css">
   <link rel="stylesheet" href="styles/student.css">
 </head>
 
 <body>
 
-<div class="topbar">
-  <h2>🎓 Student Portal</h2>
-  <button onclick="logout()">Logout</button>
-</div>
+<header>
+  <h2>Student Portal</h2>
+</header>
 
-<!-- LOGIN -->
-<div id="loginCard" class="login-wrapper">
-  <div class="login-box">
-    <h2>Student Login</h2>
-    <p class="subtitle">Access results, fees & academic records</p>
+<div class="container">
 
-    <input id="loginInput" placeholder="Email or Student ID">
-    <input id="password" type="password" placeholder="Password">
+  <!-- LOGIN -->
+  <div class="login-wrapper" id="loginCard">
+    <div class="login-box">
+      <h2>🎓 Student Portal</h2>
+      <p class="subtitle">Sign in to access results and fees</p>
 
-    <button onclick="login()">Login</button>
-    <p id="error" class="error"></p>
-  </div>
-</div>
+      <input id="loginInput" placeholder="Email or Student ID">
+      <input id="password" type="password" placeholder="Password">
 
-<!-- DASHBOARD -->
-<div id="dashboard" class="hidden">
-
-  <div class="card">
-    <h3 id="welcome"></h3>
-    <p>Student Portal Dashboard</p>
+      <button onclick="login()">Login</button>
+      <p id="error" class="error"></p>
+    </div>
   </div>
 
-  <div class="card">
-    <h3>📊 Results</h3>
-    <div id="results"></div>
-  </div>
+  <!-- DASHBOARD -->
+  <div id="dashboard" style="display:none;">
 
-  <div class="card">
-    <h3>💰 Fees</h3>
-    <p>Total: <span id="total"></span></p>
-    <p>Paid: <span id="paid"></span></p>
-    <p>Balance: <span id="balance"></span></p>
+    <div class="card">
+      <h3 id="welcome"></h3>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="card">
+      <h3>Results</h3>
+      <div id="results"></div>
+    </div>
+
+    <div class="card">
+      <h3>Fees</h3>
+      <p>Total: <span id="total"></span></p>
+      <p>Paid: <span id="paid"></span></p>
+      <p>Balance: <span id="balance"></span></p>
+    </div>
+
   </div>
 
 </div>
@@ -70,14 +74,11 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* FIREBASE CONFIG (UNCHANGED) */
+/* FIREBASE (UNCHANGED) */
 const firebaseConfig = {
   apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
   authDomain: "school-system-748cf.firebaseapp.com",
-  projectId: "school-system-748cf",
-  storageBucket: "school-system-748cf.firebaseapp.com",
-  messagingSenderId: "899412742738",
-  appId: "1:899412742738:web:7dc83a50b53789b196858b"
+  projectId: "school-system-748cf"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -99,7 +100,6 @@ window.login = async function () {
 
     let email = input;
 
-    // Student ID login support
     if (!input.includes("@")) {
 
       const q = query(
@@ -124,7 +124,7 @@ window.login = async function () {
   }
 };
 
-/* AUTH + ROLE SECURITY */
+/* AUTH */
 onAuthStateChanged(auth, async (user) => {
 
   if (!user) {
@@ -133,38 +133,34 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
 
-  try {
+  document.getElementById("loginCard").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
 
-    const q = query(
-      collection(db, "students"),
-      where("uid", "==", user.uid)
-    );
+  const q = query(
+    collection(db, "students"),
+    where("uid", "==", user.uid)
+  );
 
-    const snap = await getDocs(q);
+  const snap = await getDocs(q);
 
-    if (snap.empty) {
-      alert("Access denied");
-      await signOut(auth);
-      return;
-    }
+  if (snap.empty) return;
 
-    const student = snap.docs[0].data();
-    currentStudentId = student.studentId;
+  const student = snap.docs[0].data();
 
-    document.getElementById("welcome").innerText =
-      "Welcome " + student.name;
+  currentStudentId = student.studentId;
 
-    document.getElementById("loginCard").style.display = "none";
-    document.getElementById("dashboard").style.display = "block";
+  document.getElementById("welcome").innerText =
+    "Welcome " + (student.name || student.email);
 
-    loadResults();
-    loadFees();
-
-  } catch (err) {
-    alert("Auth error");
-    await signOut(auth);
-  }
+  loadResults();
+  loadFees();
 });
+
+/* LOGOUT */
+window.logout = async function () {
+  await signOut(auth);
+  location.reload();
+};
 
 /* RESULTS */
 async function loadResults() {
@@ -179,16 +175,9 @@ async function loadResults() {
   const div = document.getElementById("results");
   div.innerHTML = "";
 
-  if (snap.empty) {
-    div.innerHTML = "No results found";
-    return;
-  }
-
   snap.forEach(doc => {
     const r = doc.data();
-    div.innerHTML += `
-      <div>• ${r.subject} (Term ${r.term}) - ${r.mark}</div>
-    `;
+    div.innerHTML += `${r.subject} (Term ${r.term}) - ${r.mark}<br>`;
   });
 }
 
@@ -210,15 +199,6 @@ async function loadFees() {
   document.getElementById("paid").innerText = f.amountPaid || 0;
   document.getElementById("balance").innerText = f.balance || 0;
 }
-
-/* LOGOUT */
-window.logout = async function () {
-
-  await signOut(auth);
-
-  document.getElementById("dashboard").style.display = "none";
-  document.getElementById("loginCard").style.display = "flex";
-};
 
 </script>
 
