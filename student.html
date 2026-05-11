@@ -158,11 +158,16 @@ window.login = async function () {
 /* AUTH */
 onAuthStateChanged(auth, async (user) => {
 
+  // ❌ NO USER → SHOW LOGIN ONLY
   if (!user) {
     document.getElementById("loginCard").style.display = "flex";
     document.getElementById("dashboard").style.display = "none";
     return;
   }
+
+  // 🚨 FORCE HIDE EVERYTHING FIRST (IMPORTANT FIX)
+  document.getElementById("loginCard").style.display = "none";
+  document.getElementById("dashboard").style.display = "none";
 
   try {
 
@@ -173,18 +178,16 @@ onAuthStateChanged(auth, async (user) => {
 
     const snap = await getDocs(q);
 
-    // ❌ NOT A STUDENT → FORCE LOGOUT
+    // ❌ NOT A STUDENT
     if (snap.empty) {
-      alert("Access denied: Not a student account");
       await signOut(auth);
       return;
     }
 
     const student = snap.docs[0].data();
 
-    // ❌ ROLE CHECK (IMPORTANT FIX)
+    // ❌ ROLE CHECK
     if (student.role !== "student") {
-      alert("Invalid role access");
       await signOut(auth);
       return;
     }
@@ -195,24 +198,15 @@ onAuthStateChanged(auth, async (user) => {
 
     studentId = student.studentId;
 
-    document.getElementById("welcome").innerText =
-      "Welcome " + (student.name || "Student");
-
-    document.getElementById("studentInfo").innerText =
-      "ID: " + student.studentId + " | Email: " + student.email;
-
-    document.getElementById("userTag").innerText = student.studentId;
-
     loadResults();
     loadFees();
 
   } catch (err) {
-
     console.error(err);
-    alert("Authentication error");
     await signOut(auth);
   }
 });
+  
 
 /* RESULTS */
 async function loadResults() {
