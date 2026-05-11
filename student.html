@@ -1,19 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Student Portal</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Student Portal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- GLOBAL FIRST -->
-  <link rel="stylesheet" href="styles/global.css">
-  <link rel="stylesheet" href="styles/student.css">
+<link rel="stylesheet" href="styles/global.css">
+<link rel="stylesheet" href="styles/student.css">
 </head>
 
 <body>
 
-<header>
-  <h2>Student Portal</h2>
+<!-- TOP BAR -->
+<header class="topbar">
+  <h2>🎓 Student Portal</h2>
+  <div id="userTag"></div>
 </header>
 
 <div class="container">
@@ -21,8 +22,8 @@
   <!-- LOGIN -->
   <div class="login-wrapper" id="loginCard">
     <div class="login-box">
-      <h2>🎓 Student Portal</h2>
-      <p class="subtitle">Sign in to access results and fees</p>
+      <h2>Student Login</h2>
+      <p class="subtitle">Access results, fees & profile</p>
 
       <input id="loginInput" placeholder="Email or Student ID">
       <input id="password" type="password" placeholder="Password">
@@ -33,27 +34,57 @@
   </div>
 
   <!-- DASHBOARD -->
-  <div id="dashboard" style="display:none;">
+  <div id="dashboard" class="dashboard">
 
-    <div class="card">
-      <h3 id="welcome"></h3>
+    <!-- PROFILE CARD -->
+    <div class="card profile-card">
+      <h3 id="welcome">Welcome</h3>
+      <p id="studentInfo"></p>
       <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
 
-    <div class="card">
-      <h3>Results</h3>
-      <div id="results"></div>
+    <!-- SUMMARY GRID -->
+    <div class="grid">
+
+      <div class="card stat">
+        <h4>Fees Total</h4>
+        <p id="total"></p>
+      </div>
+
+      <div class="card stat">
+        <h4>Fees Paid</h4>
+        <p id="paid"></p>
+      </div>
+
+      <div class="card stat">
+        <h4>Balance</h4>
+        <p id="balance"></p>
+      </div>
+
+      <div class="card stat">
+        <h4>Results Count</h4>
+        <p id="resultCount">0</p>
+      </div>
+
     </div>
 
-    <div class="card">
-      <h3>Fees</h3>
-      <p>Total: <span id="total"></span></p>
-      <p>Paid: <span id="paid"></span></p>
-      <p>Balance: <span id="balance"></span></p>
+    <!-- RESULTS TABLE -->
+    <div class="card full">
+      <h3>Academic Results</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Term</th>
+            <th>Mark</th>
+          </tr>
+        </thead>
+        <tbody id="results"></tbody>
+      </table>
     </div>
 
   </div>
-
 </div>
 
 <script type="module">
@@ -85,7 +116,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-let currentStudentId = null;
+let studentId = null;
 
 /* LOGIN */
 window.login = async function () {
@@ -110,7 +141,7 @@ window.login = async function () {
       const snap = await getDocs(q);
 
       if (snap.empty) {
-        error.innerText = "Student ID not found";
+        error.innerText = "Student not found";
         return;
       }
 
@@ -119,7 +150,7 @@ window.login = async function () {
 
     await signInWithEmailAndPassword(auth, email, password);
 
-  } catch (err) {
+  } catch (e) {
     error.innerText = "Login failed";
   }
 };
@@ -145,40 +176,51 @@ onAuthStateChanged(auth, async (user) => {
 
   if (snap.empty) return;
 
-  const student = snap.docs[0].data();
-
-  currentStudentId = student.studentId;
+  const s = snap.docs[0].data();
+  studentId = s.studentId;
 
   document.getElementById("welcome").innerText =
-    "Welcome " + (student.name || student.email);
+    "Welcome " + (s.name || "Student");
+
+  document.getElementById("studentInfo").innerText =
+    "ID: " + s.studentId + " | Email: " + s.email;
+
+  document.getElementById("userTag").innerText = s.studentId;
 
   loadResults();
   loadFees();
 });
-
-/* LOGOUT */
-window.logout = async function () {
-  await signOut(auth);
-  location.reload();
-};
 
 /* RESULTS */
 async function loadResults() {
 
   const q = query(
     collection(db, "results"),
-    where("studentId", "==", currentStudentId)
+    where("studentId", "==", studentId)
   );
 
   const snap = await getDocs(q);
 
-  const div = document.getElementById("results");
-  div.innerHTML = "";
+  const table = document.getElementById("results");
+  table.innerHTML = "";
+
+  let count = 0;
 
   snap.forEach(doc => {
+
     const r = doc.data();
-    div.innerHTML += `${r.subject} (Term ${r.term}) - ${r.mark}<br>`;
+    count++;
+
+    table.innerHTML += `
+      <tr>
+        <td>${r.subject}</td>
+        <td>${r.term}</td>
+        <td>${r.mark}</td>
+      </tr>
+    `;
   });
+
+  document.getElementById("resultCount").innerText = count;
 }
 
 /* FEES */
@@ -186,7 +228,7 @@ async function loadFees() {
 
   const q = query(
     collection(db, "fees"),
-    where("studentId", "==", currentStudentId)
+    where("studentId", "==", studentId)
   );
 
   const snap = await getDocs(q);
@@ -199,6 +241,12 @@ async function loadFees() {
   document.getElementById("paid").innerText = f.amountPaid || 0;
   document.getElementById("balance").innerText = f.balance || 0;
 }
+
+/* LOGOUT */
+window.logout = async function () {
+  await signOut(auth);
+  location.reload();
+};
 
 </script>
 
