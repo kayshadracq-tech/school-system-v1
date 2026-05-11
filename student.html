@@ -105,7 +105,9 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* FIREBASE (UNCHANGED) */
+/* =========================
+   FIREBASE INIT (UNCHANGED)
+========================= */
 const firebaseConfig = {
   apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
   authDomain: "school-system-748cf.firebaseapp.com",
@@ -116,9 +118,27 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+/* =========================
+   GLOBAL STATE
+========================= */
 let studentId = null;
 
-/* LOGIN */
+/* =========================
+   UI HELPERS
+========================= */
+function showLogin() {
+  document.getElementById("loginCard").style.display = "flex";
+  document.getElementById("dashboard").style.display = "none";
+}
+
+function showDashboard() {
+  document.getElementById("loginCard").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
+}
+
+/* =========================
+   LOGIN
+========================= */
 window.login = async function () {
 
   const input = document.getElementById("loginInput").value.trim();
@@ -131,6 +151,7 @@ window.login = async function () {
 
     let email = input;
 
+    // If Student ID used instead of email
     if (!input.includes("@")) {
 
       const q = query(
@@ -150,26 +171,27 @@ window.login = async function () {
 
     await signInWithEmailAndPassword(auth, email, password);
 
-  } catch (e) {
-    error.innerText = "Login failed";
+  } catch (err) {
+    console.error(err);
+    error.innerText = "Login failed. Check credentials.";
   }
 };
 
-/* AUTH */
+/* =========================
+   AUTH STATE (SECURE FIX)
+========================= */
 onAuthStateChanged(auth, async (user) => {
 
-  // ❌ NO USER → SHOW LOGIN ONLY
+  // NO USER → LOGIN ONLY
   if (!user) {
-    document.getElementById("loginCard").style.display = "flex";
-    document.getElementById("dashboard").style.display = "none";
+    showLogin();
     return;
   }
 
-  // 🚨 FORCE HIDE EVERYTHING FIRST (IMPORTANT FIX)
-  document.getElementById("loginCard").style.display = "none";
-  document.getElementById("dashboard").style.display = "none";
-
   try {
+
+    // ALWAYS START CLEAN (prevents blank UI bugs)
+    showLogin();
 
     const q = query(
       collection(db, "students"),
@@ -178,8 +200,10 @@ onAuthStateChanged(auth, async (user) => {
 
     const snap = await getDocs(q);
 
-    // ❌ NOT A STUDENT
+    // ❌ NOT FOUND IN STUDENTS COLLECTION
     if (snap.empty) {
+      console.warn("No student record linked to UID:", user.uid);
+      alert("Access denied: No student profile linked.");
       await signOut(auth);
       return;
     }
@@ -188,27 +212,39 @@ onAuthStateChanged(auth, async (user) => {
 
     // ❌ ROLE CHECK
     if (student.role !== "student") {
+      alert("Access denied: Invalid role.");
       await signOut(auth);
       return;
     }
 
-    // ✅ ONLY NOW SHOW DASHBOARD
-    document.getElementById("loginCard").style.display = "none";
-    document.getElementById("dashboard").style.display = "block";
+    // ✅ SUCCESS → SHOW DASHBOARD
+    showDashboard();
 
     studentId = student.studentId;
+
+    document.getElementById("welcome").innerText =
+      "Welcome " + (student.name || "Student");
+
+    document.getElementById("studentInfo").innerText =
+      "ID: " + student.studentId + " | Email: " + student.email;
+
+    document.getElementById("userTag").innerText =
+      student.studentId;
 
     loadResults();
     loadFees();
 
   } catch (err) {
-    console.error(err);
+
+    console.error("Auth error:", err);
+    alert("Authentication error occurred");
     await signOut(auth);
   }
 });
-  
 
-/* RESULTS */
+/* =========================
+   RESULTS
+========================= */
 async function loadResults() {
 
   const q = query(
@@ -240,7 +276,9 @@ async function loadResults() {
   document.getElementById("resultCount").innerText = count;
 }
 
-/* FEES */
+/* =========================
+   FEES
+========================= */
 async function loadFees() {
 
   const q = query(
@@ -259,7 +297,9 @@ async function loadFees() {
   document.getElementById("balance").innerText = f.balance || 0;
 }
 
-/* LOGOUT */
+/* =========================
+   LOGOUT
+========================= */
 window.logout = async function () {
   await signOut(auth);
   location.reload();
@@ -269,3 +309,5 @@ window.logout = async function () {
 
 </body>
 </html>
+
+    
