@@ -121,6 +121,7 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   currentUser = user;
+  try {
 
   /* READ TEACHER PROFILE */
   const snap = await getDoc(doc(db, "teachers", user.uid));
@@ -220,8 +221,19 @@ async function loadMarks() {
     del.onclick = async () => {
       await deleteDoc(doc(db, "marks", docSnap.id));
       loadMarks();
-    };
 
+} catch (err) {
+
+  console.error(err);
+
+  alert("Authentication error");
+
+  await signOut(auth);
+
+  loginBox.style.display = "block";
+  dashboard.style.display = "none";
+}
+});
     row.children[4].appendChild(del);
     table.appendChild(row);
   });
