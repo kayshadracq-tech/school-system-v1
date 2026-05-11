@@ -6,9 +6,10 @@
   font-family: Arial;
 }
 
-/* BODY */
+/* BODY FIX (IMPORTANT) */
 body {
-  background: #f4f6f9;
+  background: #f4f6f9 !important;
+  color: #111;
 }
 
 /* TOP BAR */
@@ -26,7 +27,7 @@ body {
   padding: 20px;
 }
 
-/* LOGIN */
+/* LOGIN FIX */
 .login-wrapper {
   display: flex;
   justify-content: center;
@@ -48,6 +49,8 @@ body {
   width: 100%;
   padding: 12px;
   margin: 8px 0;
+  border: 1px solid #ddd;
+  border-radius: 6px;
 }
 
 .login-box button {
@@ -56,19 +59,21 @@ body {
   background: #1e3a8a;
   color: white;
   border: none;
+  cursor: pointer;
 }
 
-/* DASHBOARD */
+/* DASHBOARD FIX (IMPORTANT) */
 .dashboard {
   display: none;
+  flex-direction: column;
+  gap: 20px;
 }
 
-/* GRID */
+/* GRID FIX */
 .grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 15px;
-  margin: 20px 0;
 }
 
 /* CARD */
@@ -77,11 +82,12 @@ body {
   padding: 15px;
   border-radius: 10px;
   box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  color: #111;
 }
 
 /* PROFILE */
 .profile-card {
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 /* STATS */
@@ -89,10 +95,11 @@ body {
   text-align: center;
 }
 
-/* TABLE */
+/* TABLE FIX */
 table {
   width: 100%;
   border-collapse: collapse;
+  color: #111;
 }
 
 th, td {
@@ -100,9 +107,9 @@ th, td {
   border-bottom: 1px solid #ddd;
 }
 
-/* BUTTON */
+/* LOGOUT */
 .logout-btn {
-  background: red;
+  background: #dc2626;
   color: white;
   padding: 10px;
   border: none;
