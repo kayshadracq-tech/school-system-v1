@@ -198,14 +198,16 @@ document.getElementById("saveBtn").onclick = async () => {
 
   try {
 
-    await addDoc(collection(db, "marks"), {
-      teacherId: currentUser.uid,
-      subject: teacherSubject,
-      studentId,
-      term,
-      mark,
-      createdAt: serverTimestamp()
-    });
+await addDoc(collection(db, "marks"), {
+  teacherId: currentUser.uid,
+  teacherName: document.getElementById("teacherName").innerText,
+  subject: teacherSubject,
+  studentId,
+  term,
+  mark,
+
+  createdAt: serverTimestamp()
+});
 
     loadMarks();
 
