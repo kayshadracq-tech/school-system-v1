@@ -438,6 +438,32 @@ window.addResultBtn.onclick = async () => {
   loadResults();
 };
 
+
+window.updateResultBtn.onclick = async () => {
+
+  if (!rEdit) {
+    return alert("Please select a result to update");
+  }
+
+  try {
+    await updateDoc(doc(db, "marks", rEdit), {
+      studentId: r_studentId.value,
+      subject: subject.value,
+      term: term.value,
+      mark: mark.value
+    });
+
+    rEdit = null;
+
+    loadResults();
+
+    alert("✅ Result successfully updated");
+
+  } catch (err) {
+    console.error(err);
+    alert("❌ Update failed");
+  }
+};  
 async function loadResults() {
   resultsTable.innerHTML = "";
 
