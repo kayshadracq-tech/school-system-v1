@@ -121,48 +121,62 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   currentUser = user;
+
   try {
 
-  /* READ TEACHER PROFILE */
-  const snap = await getDoc(doc(db, "teachers", user.uid));
+    /* READ TEACHER PROFILE */
+    const snap = await getDoc(doc(db, "teachers", user.uid));
 
-if (!snap.exists()) {
+    if (!snap.exists()) {
 
-  alert("Access denied");
+      alert("Access denied");
 
-  await signOut(auth);
+      await signOut(auth);
 
-  loginBox.style.display = "block";
-  dashboard.style.display = "none";
+      loginBox.style.display = "block";
+      dashboard.style.display = "none";
 
-  return;
-}
+      return;
+    }
 
-  const data = snap.data();
+    const data = snap.data();
 
-if (data.role !== "teacher") {
+    if (data.role !== "teacher") {
 
-  alert("Invalid teacher role");
+      alert("Invalid teacher role");
 
-  await signOut(auth);
+      await signOut(auth);
 
-  loginBox.style.display = "block";
-  dashboard.style.display = "none";
+      loginBox.style.display = "block";
+      dashboard.style.display = "none";
 
-  return;
-}
+      return;
+    }
 
-  teacherSubject = data.subject;
+    teacherSubject = data.subject;
 
-  document.getElementById("teacherName").innerText = data.name;
-  document.getElementById("subject").innerText = teacherSubject;
+    document.getElementById("teacherName").innerText = data.name;
+    document.getElementById("subject").innerText = teacherSubject;
 
-  /* SHOW DASHBOARD ONLY AFTER LOGIN */
-  loginBox.style.display = "none";
-  dashboard.style.display = "block";
+    /* SHOW DASHBOARD ONLY AFTER LOGIN */
+    loginBox.style.display = "none";
+    dashboard.style.display = "block";
 
-  loadMarks();
+    loadMarks();
+
+  } catch (err) {
+
+    console.error(err);
+
+    alert("Authentication error");
+
+    await signOut(auth);
+
+    loginBox.style.display = "block";
+    dashboard.style.display = "none";
+  }
 });
+  
 
 /* SAVE MARK */
 document.getElementById("saveBtn").onclick = async () => {
