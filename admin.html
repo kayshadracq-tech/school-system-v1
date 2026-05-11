@@ -426,7 +426,7 @@ async function loadStudents() {
 ========================= */
 
 window.addResultBtn.onclick = async () => {
-  await setDoc(doc(db, "results",
+  await setDoc(doc(db, "marks",
   r_studentId.value + "_" + subject.value + "_" + term.value
 ), {
   studentId: r_studentId.value,
@@ -441,7 +441,7 @@ window.addResultBtn.onclick = async () => {
 async function loadResults() {
   resultsTable.innerHTML = "";
 
-  const snap = await getDocs(collection(db, "results"));
+  const snap = await getDocs(collection(db, "marks"));
 
   document.getElementById("totalResults").innerText = snap.size;
 
@@ -474,7 +474,7 @@ async function loadResults() {
     del.className = "delete";
     del.textContent = "Delete";
     del.onclick = async () => {
-      await deleteDoc(doc(db, "results", d.id));
+      await deleteDoc(doc(db, "marks", d.id));
       loadResults();
     };
 
