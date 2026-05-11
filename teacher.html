@@ -54,9 +54,11 @@
 
 </div>
 
-<script type="module">
+
+  <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
 import {
   getAuth,
   signInWithEmailAndPassword,
@@ -77,7 +79,7 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* ✅ SAME CONFIG AS ADMIN (DO NOT CHANGE) */
+/* FIREBASE CONFIG */
 const firebaseConfig = {
   apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
   authDomain: "school-system-748cf.firebaseapp.com",
@@ -100,23 +102,32 @@ let teacherSubject = "";
 
 /* LOGIN */
 document.getElementById("loginBtn").onclick = async () => {
+
+  document.getElementById("error").innerText = "";
+
   try {
+
     await signInWithEmailAndPassword(
       auth,
       document.getElementById("email").value.trim(),
       document.getElementById("password").value.trim()
     );
+
   } catch (e) {
-    document.getElementById("error").innerText = e.message;
+
+    document.getElementById("error").innerText =
+      "Invalid email or password";
   }
 };
 
-/* AUTH */
+/* AUTH SECURITY */
 onAuthStateChanged(auth, async (user) => {
 
   if (!user) {
+
     dashboard.style.display = "none";
     loginBox.style.display = "block";
+
     return;
   }
 
@@ -124,7 +135,7 @@ onAuthStateChanged(auth, async (user) => {
 
   try {
 
-    /* READ TEACHER PROFILE */
+    /* CHECK TEACHER PROFILE */
     const snap = await getDoc(doc(db, "teachers", user.uid));
 
     if (!snap.exists()) {
@@ -133,32 +144,35 @@ onAuthStateChanged(auth, async (user) => {
 
       await signOut(auth);
 
-      loginBox.style.display = "block";
       dashboard.style.display = "none";
+      loginBox.style.display = "block";
 
       return;
     }
 
     const data = snap.data();
 
+    /* ROLE SECURITY */
     if (data.role !== "teacher") {
 
       alert("Invalid teacher role");
 
       await signOut(auth);
 
-      loginBox.style.display = "block";
       dashboard.style.display = "none";
+      loginBox.style.display = "block";
 
       return;
     }
 
-    teacherSubject = data.subject;
+    teacherSubject = data.subject || "";
 
-    document.getElementById("teacherName").innerText = data.name;
-    document.getElementById("subject").innerText = teacherSubject;
+    document.getElementById("teacherName").innerText =
+      data.name || user.email;
 
-    /* SHOW DASHBOARD ONLY AFTER LOGIN */
+    document.getElementById("subject").innerText =
+      teacherSubject;
+
     loginBox.style.display = "none";
     dashboard.style.display = "block";
 
@@ -172,33 +186,44 @@ onAuthStateChanged(auth, async (user) => {
 
     await signOut(auth);
 
-    loginBox.style.display = "block";
     dashboard.style.display = "none";
+    loginBox.style.display = "block";
   }
 });
-  
 
 /* SAVE MARK */
 document.getElementById("saveBtn").onclick = async () => {
 
-  const studentId = document.getElementById("studentId").value;
-  const term = document.getElementById("term").value;
-  const mark = document.getElementById("mark").value;
+  const studentId = document.getElementById("studentId").value.trim();
+
+  const term = document.getElementById("term").value.trim();
+
+  const mark = document.getElementById("mark").value.trim();
 
   if (!studentId || !term || !mark) {
+
     return alert("Fill all fields");
   }
 
-  await addDoc(collection(db, "marks"), {
-    teacherId: currentUser.uid,
-    subject: teacherSubject,
-    studentId,
-    term,
-    mark,
-    createdAt: serverTimestamp()
-  });
+  try {
 
-  loadMarks();
+    await addDoc(collection(db, "marks"), {
+
+      teacherId: currentUser.uid,
+      subject: teacherSubject,
+      studentId,
+      term,
+      mark,
+      createdAt: serverTimestamp()
+
+    });
+
+    loadMarks();
+
+  } catch (err) {
+
+    alert("Failed to save mark");
+  }
 };
 
 /* LOAD MARKS */
@@ -212,9 +237,10 @@ async function loadMarks() {
   const snap = await getDocs(q);
 
   const table = document.getElementById("table");
+
   table.innerHTML = "";
 
-  snap.forEach(docSnap => {
+  snap.forEach((docSnap) => {
 
     const m = docSnap.data();
 
@@ -229,37 +255,37 @@ async function loadMarks() {
     `;
 
     const del = document.createElement("button");
+
     del.textContent = "Delete";
+
     del.className = "delete";
 
     del.onclick = async () => {
+
       await deleteDoc(doc(db, "marks", docSnap.id));
+
       loadMarks();
+    };
 
-} catch (err) {
-
-  console.error(err);
-
-  alert("Authentication error");
-
-  await signOut(auth);
-
-  loginBox.style.display = "block";
-  dashboard.style.display = "none";
-}
-});
     row.children[4].appendChild(del);
+
     table.appendChild(row);
   });
 }
 
 /* LOGOUT */
 window.logout = async () => {
+
   await signOut(auth);
+
+  dashboard.style.display = "none";
+
+  loginBox.style.display = "block";
+
   location.reload();
 };
 
-</script>
 
+</script>
 </body>
-</html>
+</html> 
