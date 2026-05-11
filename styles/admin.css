@@ -283,3 +283,31 @@ tr:nth-child(even) {
     width: 100%;
   }
    }
+
+/* ===== FIX TABLE ALIGNMENT (ADD AT BOTTOM) ===== */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  margin-top: 10px;
+}
+
+th {
+  background: #f4f4f4;
+  padding: 10px;
+  text-align: left;
+  font-weight: bold;
+}
+
+td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  word-wrap: break-word;
+}
+
+/* Actions column (Edit/Delete buttons) */
+td:last-child {
+  white-space: nowrap;
+}
