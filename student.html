@@ -232,7 +232,7 @@ onAuthStateChanged(auth, async (user) => {
 async function loadResults() {
 
   const q = query(
-    collection(db, "results"),
+    collection(db, "marks"),
     where("studentId", "==", studentId)
   );
 
