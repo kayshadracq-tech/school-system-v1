@@ -8,15 +8,19 @@
   <link rel="stylesheet" href="styles/global.css">
   <link rel="stylesheet" href="styles/student.css">
 </head>
-  
 
-<div class="container">
+<body>
 
-  <!-- LOGIN -->
-  <div class="login-wrapper" id="loginCard">
+<div class="topbar">
+  <h2>🎓 Student Portal</h2>
+  <button onclick="logout()">Logout</button>
+</div>
+
+<!-- LOGIN -->
+<div id="loginCard" class="login-wrapper">
   <div class="login-box">
-    <h2>🎓 Student Portal</h2>
-    <p class="subtitle">Sign in to access your results and fees</p>
+    <h2>Student Login</h2>
+    <p class="subtitle">Access results, fees & academic records</p>
 
     <input id="loginInput" placeholder="Email or Student ID">
     <input id="password" type="password" placeholder="Password">
@@ -26,28 +30,24 @@
   </div>
 </div>
 
-  <!-- DASHBOARD -->
-  <div id="dashboard">
+<!-- DASHBOARD -->
+<div id="dashboard" class="hidden">
 
-    <div class="card">
-      <h3 id="welcome"></h3>
-      <button class="logout-btn" onclick="logout()">Logout</button>
-    </div>
+  <div class="card">
+    <h3 id="welcome"></h3>
+    <p>Student Portal Dashboard</p>
+  </div>
 
-    <!-- RESULTS -->
-    <div class="card">
-      <h3>Results</h3>
-      <div id="results"></div>
-    </div>
+  <div class="card">
+    <h3>📊 Results</h3>
+    <div id="results"></div>
+  </div>
 
-    <!-- FEES -->
-    <div class="card">
-      <h3>Fees</h3>
-      <p>Total: <span id="total"></span></p>
-      <p>Paid: <span id="paid"></span></p>
-      <p>Balance: <span id="balance"></span></p>
-    </div>
-
+  <div class="card">
+    <h3>💰 Fees</h3>
+    <p>Total: <span id="total"></span></p>
+    <p>Paid: <span id="paid"></span></p>
+    <p>Balance: <span id="balance"></span></p>
   </div>
 
 </div>
@@ -70,10 +70,14 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+/* FIREBASE CONFIG (UNCHANGED) */
 const firebaseConfig = {
   apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
   authDomain: "school-system-748cf.firebaseapp.com",
-  projectId: "school-system-748cf"
+  projectId: "school-system-748cf",
+  storageBucket: "school-system-748cf.firebaseapp.com",
+  messagingSenderId: "899412742738",
+  appId: "1:899412742738:web:7dc83a50b53789b196858b"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -81,7 +85,6 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 let currentStudentId = null;
-let currentEmail = null;
 
 /* LOGIN */
 window.login = async function () {
@@ -93,9 +96,10 @@ window.login = async function () {
   error.innerText = "";
 
   try {
+
     let email = input;
 
-    // If student ID used instead of email
+    // Student ID login support
     if (!input.includes("@")) {
 
       const q = query(
@@ -116,64 +120,54 @@ window.login = async function () {
     await signInWithEmailAndPassword(auth, email, password);
 
   } catch (err) {
-    error.innerText = "Login failed: " + err.message;
+    error.innerText = "Login failed";
   }
 };
 
-/* LOGOUT */
-window.logout = async function () {
-  await signOut(auth);
-
-  document.getElementById("dashboard").style.display = "none";
-  document.getElementById("loginCard").style.display = "block";
-
-  document.getElementById("loginInput").value = "";
-  document.getElementById("password").value = "";
-
-  document.getElementById("results").innerHTML = "";
-  document.getElementById("total").innerText = "";
-  document.getElementById("paid").innerText = "";
-  document.getElementById("balance").innerText = "";
-  document.getElementById("welcome").innerText = "";
-};
-
-/* AUTH STATE */
+/* AUTH + ROLE SECURITY */
 onAuthStateChanged(auth, async (user) => {
 
-  if (!user) return;
-
-  document.getElementById("loginCard").style.display = "none";
-  document.getElementById("dashboard").style.display = "block";
-
-  currentEmail = user.email;
-
-  // 🔴 FIX: GET STUDENT FROM UID (NOT EMAIL ONLY)
-  const q = query(
-    collection(db, "students"),
-    where("uid", "==", user.uid)
-  );
-
-  const snap = await getDocs(q);
-
-  if (snap.empty) {
-    document.getElementById("welcome").innerText = "No student record found";
+  if (!user) {
+    document.getElementById("loginCard").style.display = "flex";
+    document.getElementById("dashboard").style.display = "none";
     return;
   }
 
-  const student = snap.docs[0].data();
-  currentStudentId = student.studentId;
+  try {
 
-  document.getElementById("welcome").innerText =
-    "Welcome " + (student.name || student.email);
+    const q = query(
+      collection(db, "students"),
+      where("uid", "==", user.uid)
+    );
 
-  loadResults();
-  loadFees();
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      alert("Access denied");
+      await signOut(auth);
+      return;
+    }
+
+    const student = snap.docs[0].data();
+    currentStudentId = student.studentId;
+
+    document.getElementById("welcome").innerText =
+      "Welcome " + student.name;
+
+    document.getElementById("loginCard").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+
+    loadResults();
+    loadFees();
+
+  } catch (err) {
+    alert("Auth error");
+    await signOut(auth);
+  }
 });
 
 /* RESULTS */
 async function loadResults() {
-
-  if (!currentStudentId) return;
 
   const q = query(
     collection(db, "results"),
@@ -193,15 +187,13 @@ async function loadResults() {
   snap.forEach(doc => {
     const r = doc.data();
     div.innerHTML += `
-      ${r.subject} (Term ${r.term}) - ${r.mark}<br>
+      <div>• ${r.subject} (Term ${r.term}) - ${r.mark}</div>
     `;
   });
 }
 
 /* FEES */
 async function loadFees() {
-
-  if (!currentStudentId) return;
 
   const q = query(
     collection(db, "fees"),
@@ -210,12 +202,7 @@ async function loadFees() {
 
   const snap = await getDocs(q);
 
-  if (snap.empty) {
-    document.getElementById("total").innerText = "0";
-    document.getElementById("paid").innerText = "0";
-    document.getElementById("balance").innerText = "0";
-    return;
-  }
+  if (snap.empty) return;
 
   const f = snap.docs[0].data();
 
@@ -223,6 +210,15 @@ async function loadFees() {
   document.getElementById("paid").innerText = f.amountPaid || 0;
   document.getElementById("balance").innerText = f.balance || 0;
 }
+
+/* LOGOUT */
+window.logout = async function () {
+
+  await signOut(auth);
+
+  document.getElementById("dashboard").style.display = "none";
+  document.getElementById("loginCard").style.display = "flex";
+};
 
 </script>
 
