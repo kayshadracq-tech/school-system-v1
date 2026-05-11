@@ -3,80 +3,121 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: Arial, sans-serif;
+  font-family: Arial;
 }
 
-/* DO NOT OVERRIDE GLOBAL BACKGROUND */
+/* BODY */
 body {
-  color: #111;
+  background: #f4f6f9;
+}
+
+/* TOP BAR */
+.topbar {
+  background: #1e3a8a;
+  color: white;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 /* CONTAINER */
 .container {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  padding: 20px;
 }
 
-/* LOGIN WRAPPER */
+/* LOGIN */
 .login-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
+  height: 80vh;
 }
 
-/* LOGIN BOX */
 .login-box {
   background: white;
+  padding: 25px;
   width: 100%;
   max-width: 380px;
-  padding: 25px;
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.1);
   text-align: center;
 }
 
-/* INPUTS */
 .login-box input {
   width: 100%;
   padding: 12px;
   margin: 8px 0;
-  border: 1px solid #ddd;
-  border-radius: 6px;
 }
 
-/* BUTTON */
 .login-box button {
   width: 100%;
   padding: 12px;
   background: #1e3a8a;
   color: white;
   border: none;
-  border-radius: 6px;
 }
 
-/* DASHBOARD CARDS */
+/* DASHBOARD */
+.dashboard {
+  display: none;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin: 20px 0;
+}
+
+/* CARD */
 .card {
   background: white;
   padding: 15px;
-  margin: 10px;
   border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
 }
 
-/* LOGOUT */
+/* PROFILE */
+.profile-card {
+  margin-bottom: 20px;
+}
+
+/* STATS */
+.stat {
+  text-align: center;
+}
+
+/* TABLE */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* BUTTON */
 .logout-btn {
   background: red;
   color: white;
-  border: none;
   padding: 10px;
+  border: none;
   width: 100%;
-  border-radius: 6px;
 }
 
-/* ERROR */
-.error {
-  color: red;
-  font-size: 13px;
+/* MOBILE */
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 500px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
 }
