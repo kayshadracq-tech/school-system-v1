@@ -110,11 +110,13 @@
 
   <h2>Results Management</h2>
 
-  <input id="r_studentId" placeholder="Student ID">
-  <input id="subject" placeholder="Subject">
-  <input id="term" placeholder="Term">
-  <input id="mark" placeholder="Mark">
-  <input id="year" placeholder="Year (e.g 2026)">
+<input id="r_studentId" placeholder="Student ID">
+<input id="subject" placeholder="Subject">
+<input id="term" placeholder="Term">
+<input id="year" placeholder="Year">
+<input id="mark" placeholder="Mark">
+
+      
   <button id="addResultBtn" class="add">Add Result</button>
   <button id="updateResultBtn" class="update">Update Result</button>
 
@@ -133,9 +135,11 @@
 
   <h2>Fees Management</h2>
 
-  <input id="f_studentId" placeholder="Student ID">
-  <input id="total" placeholder="Total Fees">
-  <input id="paid" placeholder="Paid Amount">
+<input id="f_studentId" placeholder="Student ID">
+<input id="termFee" placeholder="Term">
+<input id="yearFee" placeholder="Year">
+<input id="total" placeholder="Total Fees">
+<input id="paid" placeholder="Paid Amount">
 
   <button id="addFeesBtn" class="add">Add Fees</button>
   <button id="updateFeesBtn" class="update">Update Fees</button>
@@ -153,6 +157,11 @@
   </div>
 </div>      
   
+
+  
+
+
+
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -195,78 +204,6 @@ const adminPass = document.getElementById("adminPass");
 const adminError = document.getElementById("adminError");
 const loginGate = document.getElementById("loginGate");
 
-/* LOGIN */
-adminLoginBtn.onclick = async () => {
-  adminError.innerText = "";
-  try {
-    await signInWithEmailAndPassword(
-      auth,
-      adminEmail.value.trim(),
-      adminPass.value.trim()
-    );
-  } catch {
-    adminError.innerText = "Invalid email or password";
-  }
-};
-
-/* AUTH STATE */
-onAuthStateChanged(auth, async (user) => {
-
-  if (!user) {
-    loginGate.style.display = "flex";
-    return;
-  }
-
-  try {
-
-    // 🔐 CHECK ADMIN COLLECTION ONLY
-const q = await getDocs(collection(db, "admins"));
-const snap = q.docs.find(d => d.data().email === user.email);
-    
-if (!snap) {
-
-      alert("Access denied: Not admin");
-
-      await signOut(auth);
-
-      loginGate.style.display = "flex";
-
-      document.querySelectorAll(".section").forEach(s => {
-        s.style.display = "none";
-      });
-
-      return;
-    }
-
-const data = snap.data();
-
-    if (data.role !== "admin") {
-
-      alert("Invalid admin role");
-
-      await signOut(auth);
-
-      loginGate.style.display = "flex";
-
-      return;
-    }
-
-    // ✅ SUCCESS LOGIN
-    document.getElementById("adminName").innerText = data.email || user.email;
-
-    loginGate.style.display = "none";
-
-    showSection("home");
-    loadStudents();
-    loadResults();
-    loadFees();
-
-  } catch (err) {
-    console.error(err);
-    alert("Error loading admin profile");
-  }
-});
-
 /* STATES */
 let sEdit = null;
 let rEdit = null;
@@ -284,10 +221,12 @@ const classInput = document.getElementById("className");
 const r_studentId = document.getElementById("r_studentId");
 const subject = document.getElementById("subject");
 const term = document.getElementById("term");
+const year = document.getElementById("year");
 const mark = document.getElementById("mark");
-const year = document.getElementById("year"); 
 
 const f_studentId = document.getElementById("f_studentId");
+const termFee = document.getElementById("termFee");
+const yearFee = document.getElementById("yearFee");
 const total = document.getElementById("total");
 const paid = document.getElementById("paid");
 
@@ -296,28 +235,65 @@ const studentTable = document.getElementById("studentTable");
 const resultsTable = document.getElementById("resultsTable");
 const feesTable = document.getElementById("feesTable");
 
-/* =========================
-   NAVIGATION FIX
-========================= */
-window.showSection = (section) => {
-
-  document.querySelectorAll(".menu-item").forEach(i => i.classList.remove("active"));
-  document.querySelectorAll(".section").forEach(s => s.style.display = "none");
-
-  const el = document.getElementById(section);
-  if (el) el.style.display = "block";
-
-  const map = { home: 0, students: 1, results: 2, fees: 3 };
-  const items = document.querySelectorAll(".menu-item");
-
-  if (items[map[section]]) {
-    items[map[section]].classList.add("active");
+/* LOGIN */
+adminLoginBtn.onclick = async () => {
+  adminError.innerText = "";
+  try {
+    await signInWithEmailAndPassword(
+      auth,
+      adminEmail.value.trim(),
+      adminPass.value.trim()
+    );
+  } catch {
+    adminError.innerText = "Invalid email or password";
   }
 };
 
-/* =========================
-   STUDENTS
-========================= */
+/* AUTH */
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) {
+    loginGate.style.display = "flex";
+    return;
+  }
+
+  try {
+    const q = await getDocs(collection(db, "admins"));
+    const snap = q.docs.find(d => d.data().email === user.email);
+
+    if (!snap || snap.data().role !== "admin") {
+      alert("Access denied");
+      await signOut(auth);
+      loginGate.style.display = "flex";
+      return;
+    }
+
+    document.getElementById("adminName").innerText = user.email;
+
+    loginGate.style.display = "none";
+
+    showSection("home");
+    loadStudents();
+    loadResults();
+    loadFees();
+
+  } catch (err) {
+    alert("Error loading admin");
+  }
+});
+
+/* NAVIGATION */
+window.showSection = (section) => {
+  document.querySelectorAll(".menu-item").forEach(i => i.classList.remove("active"));
+  document.querySelectorAll(".section").forEach(s => s.style.display = "none");
+
+  document.getElementById(section).style.display = "block";
+
+  const map = { home: 0, students: 1, results: 2, fees: 3 };
+  document.querySelectorAll(".menu-item")[map[section]].classList.add("active");
+};
+
+/* ================= STUDENTS ================= */
 
 async function idExists(id) {
   const snap = await getDocs(collection(db, "students"));
@@ -325,6 +301,7 @@ async function idExists(id) {
 }
 
 window.addStudentBtn.onclick = async () => {
+
   const id = studentId.value.trim();
 
   if (await idExists(id)) return alert("Student ID exists");
@@ -347,13 +324,15 @@ window.addStudentBtn.onclick = async () => {
     });
 
     loadStudents();
-    alert("Student added");
+    alert("Student added successfully");
+
   } catch (e) {
     alert(e.message);
   }
 };
 
 window.updateStudentBtn.onclick = async () => {
+
   if (!sEdit) return alert("Select student");
 
   await updateDoc(doc(db, "students", sEdit), {
@@ -365,14 +344,14 @@ window.updateStudentBtn.onclick = async () => {
     class: classInput.value
   });
 
-  loadStudents();
   sEdit = null;
+  loadStudents();
+
+  alert("Student updated successfully");
 };
 
-/* =========================
-   LOAD STUDENTS
-========================= */
 async function loadStudents() {
+
   studentTable.innerHTML = "";
 
   const snap = await getDocs(collection(db, "students"));
@@ -380,6 +359,7 @@ async function loadStudents() {
   document.getElementById("totalStudents").innerText = snap.size;
 
   snap.forEach(d => {
+
     const s = d.data();
 
     const row = document.createElement("tr");
@@ -399,6 +379,7 @@ async function loadStudents() {
     const edit = document.createElement("button");
     edit.className = "edit";
     edit.textContent = "Edit";
+
     edit.onclick = () => {
       sEdit = d.id;
       name.value = s.name;
@@ -412,6 +393,7 @@ async function loadStudents() {
     const del = document.createElement("button");
     del.className = "delete";
     del.textContent = "Delete";
+
     del.onclick = async () => {
       await deleteDoc(doc(db, "students", d.id));
       loadStudents();
@@ -424,51 +406,44 @@ async function loadStudents() {
   });
 }
 
-/* =========================
-   RESULTS
-========================= */
+/* ================= RESULTS ================= */
 
 window.addResultBtn.onclick = async () => {
-  await setDoc(doc(db, "marks",
-  r_studentId.value + "_" + subject.value + "_" + term.value
-), {
-  studentId: r_studentId.value,
-  subject: subject.value,
-  term: term.value,
-  mark: mark.value,
-  year: year.value
-});
+
+  const id = r_studentId.value + "_" + subject.value + "_" + term.value + "_" + year.value;
+
+  await setDoc(doc(db, "marks", id), {
+    studentId: r_studentId.value,
+    subject: subject.value,
+    term: term.value,
+    year: year.value,
+    mark: mark.value
+  });
 
   loadResults();
+  alert("Result added successfully");
 };
-
 
 window.updateResultBtn.onclick = async () => {
 
-  if (!rEdit) {
-    return alert("Please select a result to update");
-  }
+  if (!rEdit) return alert("Select result first");
 
-  try {
-    await updateDoc(doc(db, "marks", rEdit), {
-      studentId: r_studentId.value,
-      subject: subject.value,
-      term: term.value,
-      mark: mark.value
-    });
+  await updateDoc(doc(db, "marks", rEdit), {
+    studentId: r_studentId.value,
+    subject: subject.value,
+    term: term.value,
+    year: year.value,
+    mark: mark.value
+  });
 
-    rEdit = null;
+  rEdit = null;
+  loadResults();
 
-    loadResults();
+  alert("Result successfully updated");
+};
 
-    alert("✅ Result successfully updated");
-
-  } catch (err) {
-    console.error(err);
-    alert("❌ Update failed");
-  }
-};  
 async function loadResults() {
+
   resultsTable.innerHTML = "";
 
   const snap = await getDocs(collection(db, "marks"));
@@ -476,43 +451,40 @@ async function loadResults() {
   document.getElementById("totalResults").innerText = snap.size;
 
   snap.forEach(d => {
+
     const r = d.data();
 
     const row = document.createElement("tr");
 
-row.innerHTML = `
-  <td>${r.studentId}</td>
-  <td>${r.subject}</td>
-  <td>${r.term}</td>
-  <td>${r.mark}</td>
-  <td>${r.year || ""}</td>
-  <td></td>
-`;
+    row.innerHTML = `
+      <td>${r.studentId}</td>
+      <td>${r.subject}</td>
+      <td>${r.term}</td>
+      <td>${r.year}</td>
+      <td>${r.mark}</td>
+      <td></td>
+    `;
 
-    const action = row.children[4];
+    const action = row.children[5];
 
-    // EDIT BUTTON
     const edit = document.createElement("button");
     edit.className = "edit";
     edit.textContent = "Edit";
 
     edit.onclick = () => {
       rEdit = d.id;
-
       r_studentId.value = r.studentId;
       subject.value = r.subject;
       term.value = r.term;
+      year.value = r.year;
       mark.value = r.mark;
     };
 
-    // DELETE BUTTON
     const del = document.createElement("button");
     del.className = "delete";
     del.textContent = "Delete";
 
     del.onclick = async () => {
-      if (!confirm("Delete this result?")) return;
-
       await deleteDoc(doc(db, "marks", d.id));
       loadResults();
     };
@@ -524,23 +496,24 @@ row.innerHTML = `
   });
 }
 
-/* =========================
-   FEES
-========================= */
+/* ================= FEES ================= */
 
 window.addFeesBtn.onclick = async () => {
 
   const t = Number(total.value) || 0;
   const p = Number(paid.value) || 0;
 
-  await setDoc(doc(db, "fees", f_studentId.value), {
+  await setDoc(doc(db, "fees", f_studentId.value + "_" + termFee.value + "_" + yearFee.value), {
     studentId: f_studentId.value,
+    term: termFee.value,
+    year: yearFee.value,
     totalFees: t,
     amountPaid: p,
     balance: t - p
   });
 
   loadFees();
+  alert("Fees added successfully");
 };
 
 window.updateFeesBtn.onclick = async () => {
@@ -552,14 +525,17 @@ window.updateFeesBtn.onclick = async () => {
 
   await updateDoc(doc(db, "fees", fEdit), {
     studentId: f_studentId.value,
+    term: termFee.value,
+    year: yearFee.value,
     totalFees: t,
     amountPaid: p,
     balance: t - p
   });
 
   fEdit = null;
-
   loadFees();
+
+  alert("Fees updated successfully");
 };
 
 async function loadFees() {
@@ -578,37 +554,35 @@ async function loadFees() {
 
     row.innerHTML = `
       <td>${f.studentId}</td>
+      <td>${f.term}</td>
+      <td>${f.year}</td>
       <td>${f.totalFees}</td>
       <td>${f.amountPaid}</td>
       <td>${f.balance}</td>
       <td></td>
     `;
 
-    const action = row.children[4];
+    const action = row.children[6];
 
     const edit = document.createElement("button");
-
     edit.className = "edit";
     edit.textContent = "Edit";
 
     edit.onclick = () => {
-
       fEdit = d.id;
-
       f_studentId.value = f.studentId;
+      termFee.value = f.term;
+      yearFee.value = f.year;
       total.value = f.totalFees;
       paid.value = f.amountPaid;
     };
 
     const del = document.createElement("button");
-
     del.className = "delete";
     del.textContent = "Delete";
 
     del.onclick = async () => {
-
       await deleteDoc(doc(db, "fees", d.id));
-
       loadFees();
     };
 
@@ -618,29 +592,16 @@ async function loadFees() {
     feesTable.appendChild(row);
   });
 }
-    
 
-  /* LOGOUT */
+/* LOGOUT */
 window.logoutAdmin = async () => {
-
-  try {
-
-    await signOut(auth);
-
-    loginGate.style.display = "flex";
-
-    document.querySelectorAll(".section").forEach(section => {
-      section.style.display = "none";
-    });
-
-  } catch (err) {
-
-    alert("Logout failed: " + err.message);
-
-  }
-};             
+  await signOut(auth);
+  loginGate.style.display = "flex";
+  document.querySelectorAll(".section").forEach(s => s.style.display = "none");
+};
 
 showSection("home");
+
 </script>
 
 </body>
