@@ -164,31 +164,54 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
 
-  document.getElementById("loginCard").style.display = "none";
-  document.getElementById("dashboard").style.display = "block";
+  try {
 
-  const q = query(
-    collection(db, "students"),
-    where("uid", "==", user.uid)
-  );
+    const q = query(
+      collection(db, "students"),
+      where("uid", "==", user.uid)
+    );
 
-  const snap = await getDocs(q);
+    const snap = await getDocs(q);
 
-  if (snap.empty) return;
+    // ❌ NOT A STUDENT → FORCE LOGOUT
+    if (snap.empty) {
+      alert("Access denied: Not a student account");
+      await signOut(auth);
+      return;
+    }
 
-  const s = snap.docs[0].data();
-  studentId = s.studentId;
+    const student = snap.docs[0].data();
 
-  document.getElementById("welcome").innerText =
-    "Welcome " + (s.name || "Student");
+    // ❌ ROLE CHECK (IMPORTANT FIX)
+    if (student.role !== "student") {
+      alert("Invalid role access");
+      await signOut(auth);
+      return;
+    }
 
-  document.getElementById("studentInfo").innerText =
-    "ID: " + s.studentId + " | Email: " + s.email;
+    // ✅ ONLY NOW SHOW DASHBOARD
+    document.getElementById("loginCard").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
 
-  document.getElementById("userTag").innerText = s.studentId;
+    studentId = student.studentId;
 
-  loadResults();
-  loadFees();
+    document.getElementById("welcome").innerText =
+      "Welcome " + (student.name || "Student");
+
+    document.getElementById("studentInfo").innerText =
+      "ID: " + student.studentId + " | Email: " + student.email;
+
+    document.getElementById("userTag").innerText = student.studentId;
+
+    loadResults();
+    loadFees();
+
+  } catch (err) {
+
+    console.error(err);
+    alert("Authentication error");
+    await signOut(auth);
+  }
 });
 
 /* RESULTS */
