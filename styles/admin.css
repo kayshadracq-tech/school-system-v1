@@ -1,5 +1,5 @@
 /* =========================
-   ADMIN BASE (FIXED + RESPONSIVE)
+   ADMIN BASE (CLEAN + FIXED)
 ========================= */
 
 * {
@@ -26,7 +26,7 @@ html, body {
 }
 
 /* =========================
-   SIDEBAR (DESKTOP)
+   SIDEBAR
 ========================= */
 
 .sidebar {
@@ -45,7 +45,6 @@ html, body {
   margin-bottom: 25px;
 }
 
-/* MENU */
 .menu {
   flex: 1;
   display: flex;
@@ -69,7 +68,6 @@ html, body {
   background: #1e3a8a;
 }
 
-/* FOOTER */
 .sidebar-footer {
   border-top: 1px solid rgba(255,255,255,0.2);
   padding-top: 10px;
@@ -88,14 +86,14 @@ html, body {
 }
 
 /* =========================
-   MAIN AREA
+   MAIN
 ========================= */
 
 .main {
   flex: 1;
   background: #f8fafc;
   padding: 20px;
-  min-width: 0; /* IMPORTANT FIX for overflow */
+  min-width: 0;
 }
 
 /* =========================
@@ -178,7 +176,7 @@ button:hover {
 .edit { background: #f59e0b; color: white; }
 
 /* =========================
-   TABLES (MOBILE SAFE)
+   TABLES (FINAL CLEAN FIX)
 ========================= */
 
 table {
@@ -186,7 +184,6 @@ table {
   border-collapse: collapse;
   margin-top: 12px;
   font-size: 14px;
-  min-width: 600px;
 }
 
 th {
@@ -195,15 +192,22 @@ th {
   padding: 12px;
   font-size: 13px;
   text-transform: uppercase;
+  text-align: left;
 }
 
 td {
   padding: 10px;
-  text-align: center;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 tr:nth-child(even) {
   background: #f3f4f6;
+}
+
+/* Keep buttons in one line */
+td:last-child {
+  white-space: nowrap;
 }
 
 /* =========================
@@ -231,7 +235,7 @@ tr:nth-child(even) {
 }
 
 /* =========================
-   MOBILE FIX (IMPORTANT)
+   MOBILE FIX
 ========================= */
 
 @media (max-width: 768px) {
@@ -271,43 +275,13 @@ tr:nth-child(even) {
     padding: 15px;
   }
 
-  /* FIX OVERFLOW ISSUE */
   table {
     display: block;
     overflow-x: auto;
     white-space: nowrap;
-    min-width: 100%;
   }
 
   button {
-    width: 100%;
+    width: auto;
   }
-   }
-
-/* ===== FIX TABLE ALIGNMENT (ADD AT BOTTOM) ===== */
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-  margin-top: 10px;
-}
-
-th {
-  background: #f4f4f4;
-  padding: 10px;
-  text-align: left;
-  font-weight: bold;
-}
-
-td {
-  padding: 10px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-  word-wrap: break-word;
-}
-
-/* Actions column (Edit/Delete buttons) */
-td:last-child {
-  white-space: nowrap;
 }
