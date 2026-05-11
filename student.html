@@ -86,6 +86,7 @@
 
   </div>
 </div>
+  
 
 <script type="module">
 
@@ -105,9 +106,7 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* =========================
-   FIREBASE INIT (UNCHANGED)
-========================= */
+/* ================= FIREBASE ================= */
 const firebaseConfig = {
   apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
   authDomain: "school-system-748cf.firebaseapp.com",
@@ -118,14 +117,10 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* =========================
-   GLOBAL STATE
-========================= */
+/* ================= STATE ================= */
 let studentId = null;
 
-/* =========================
-   UI HELPERS
-========================= */
+/* ================= UI CONTROL ================= */
 function showLogin() {
   document.getElementById("loginCard").style.display = "flex";
   document.getElementById("dashboard").style.display = "none";
@@ -136,9 +131,7 @@ function showDashboard() {
   document.getElementById("dashboard").style.display = "block";
 }
 
-/* =========================
-   LOGIN
-========================= */
+/* ================= LOGIN ================= */
 window.login = async function () {
 
   const input = document.getElementById("loginInput").value.trim();
@@ -151,7 +144,7 @@ window.login = async function () {
 
     let email = input;
 
-    // If Student ID used instead of email
+    // If student ID used
     if (!input.includes("@")) {
 
       const q = query(
@@ -177,12 +170,10 @@ window.login = async function () {
   }
 };
 
-/* =========================
-   AUTH STATE (SECURE FIX)
-========================= */
+/* ================= AUTH FLOW (FIXED UX ROUTING) ================= */
 onAuthStateChanged(auth, async (user) => {
 
-  // NO USER → LOGIN ONLY
+  // 1. NOT LOGGED IN → SHOW LOGIN ONLY
   if (!user) {
     showLogin();
     return;
@@ -190,9 +181,7 @@ onAuthStateChanged(auth, async (user) => {
 
   try {
 
-    // ALWAYS START CLEAN (prevents blank UI bugs)
-    showLogin();
-
+    // 2. FIND STUDENT PROFILE
     const q = query(
       collection(db, "students"),
       where("uid", "==", user.uid)
@@ -200,24 +189,23 @@ onAuthStateChanged(auth, async (user) => {
 
     const snap = await getDocs(q);
 
-    // ❌ NOT FOUND IN STUDENTS COLLECTION
+    // NOT IN STUDENT COLLECTION → FORCE LOGOUT (NO POPUP)
     if (snap.empty) {
-      console.warn("No student record linked to UID:", user.uid);
-      alert("Access denied: No student profile linked.");
       await signOut(auth);
       return;
     }
 
     const student = snap.docs[0].data();
 
-    // ❌ ROLE CHECK
+    // 3. ROLE CHECK (IMPORTANT)
     if (student.role !== "student") {
-      alert("Access denied: Invalid role.");
-      await signOut(auth);
+
+      // SILENT REDIRECT (NO "ACCESS DENIED")
+      window.location.href = "index.html";
       return;
     }
 
-    // ✅ SUCCESS → SHOW DASHBOARD
+    // 4. SUCCESS → SHOW DASHBOARD
     showDashboard();
 
     studentId = student.studentId;
@@ -235,16 +223,12 @@ onAuthStateChanged(auth, async (user) => {
     loadFees();
 
   } catch (err) {
-
     console.error("Auth error:", err);
-    alert("Authentication error occurred");
     await signOut(auth);
   }
 });
 
-/* =========================
-   RESULTS
-========================= */
+/* ================= RESULTS ================= */
 async function loadResults() {
 
   const q = query(
@@ -276,9 +260,7 @@ async function loadResults() {
   document.getElementById("resultCount").innerText = count;
 }
 
-/* =========================
-   FEES
-========================= */
+/* ================= FEES ================= */
 async function loadFees() {
 
   const q = query(
@@ -297,9 +279,7 @@ async function loadFees() {
   document.getElementById("balance").innerText = f.balance || 0;
 }
 
-/* =========================
-   LOGOUT
-========================= */
+/* ================= LOGOUT ================= */
 window.logout = async function () {
   await signOut(auth);
   location.reload();
