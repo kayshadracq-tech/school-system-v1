@@ -125,17 +125,31 @@ onAuthStateChanged(auth, async (user) => {
   /* READ TEACHER PROFILE */
   const snap = await getDoc(doc(db, "teachers", user.uid));
 
-  if (!snap.exists()) {
-    alert("Teacher profile not found in Firestore");
-    return;
-  }
+if (!snap.exists()) {
+
+  alert("Access denied");
+
+  await signOut(auth);
+
+  loginBox.style.display = "block";
+  dashboard.style.display = "none";
+
+  return;
+}
 
   const data = snap.data();
 
-  if (data.role !== "teacher") {
-    alert("Access denied");
-    return;
-  }
+if (data.role !== "teacher") {
+
+  alert("Invalid teacher role");
+
+  await signOut(auth);
+
+  loginBox.style.display = "block";
+  dashboard.style.display = "none";
+
+  return;
+}
 
   teacherSubject = data.subject;
 
