@@ -274,7 +274,7 @@ onAuthStateChanged(auth, async (user) => {
     const snap = q.docs.find(d => d.data().email === user.email);
 
     if (!snap || snap.data().role !== "admin") {
-      alert("Access denied");
+      console.log("Non-admin account blocked");
       await signOut(auth);
       loginGate.style.display = "flex";
       return;
@@ -313,12 +313,18 @@ async function idExists(id) {
 }
 
 window.addStudentBtn.onclick = async () => {
+window.addStudentBtn.onclick = async () => {
 
   const id = studentId.value.trim();
 
-  if (await idExists(id)) return alert("Student ID exists");
+  if (await idExists(id)) {
+    return alert("Student ID exists");
+  }
 
   try {
+
+    const adminUser = auth.currentUser;
+
     const userCred = await createUserWithEmailAndPassword(
       auth,
       email.value.trim(),
@@ -335,11 +341,26 @@ window.addStudentBtn.onclick = async () => {
       class: classInput.value
     });
 
+    // SIGN OUT STUDENT
+    await signOut(auth);
+
+    // SIGN BACK IN ADMIN
+    await signInWithEmailAndPassword(
+      auth,
+      adminEmail.value.trim(),
+      adminPass.value.trim()
+    );
+
     loadStudents();
+
     alert("Student added successfully");
 
   } catch (e) {
+
+    console.error(e);
+
     alert(e.message);
+
   }
 };
 
