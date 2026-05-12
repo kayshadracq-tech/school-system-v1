@@ -286,27 +286,27 @@ onAuthStateChanged(auth, async (user) => {
 
     const data = snap.data();
     
-// FINAL SAFETY CHECK
-if (!data.uid) {
-  adminError.innerText = "Access denied: Invalid admin account";
+// ================= ROLE AUTH CHECK =================
+
+if (!data.role) {
+  adminError.innerText = "Access denied: Role not assigned";
   await signOut(auth);
   return;
 }
 
-// ROLE SECURITY CHECK (ONLY ADMIN + SUPER ADMIN ALLOWED)
-const allowedRoles = ["admin", "superAdmin"];
-
-if (!allowedRoles.includes(data.role)) {
-  adminError.innerText = "Access denied: Unauthorized role";
+if (!["admin", "superAdmin"].includes(data.role)) {
+  adminError.innerText = "Access denied: You are not authorized to access admin dashboard";
   await signOut(auth);
   return;
 }
+
+if (data.active === false) {
+  adminError.innerText = "Account disabled. Contact system administrator";
+  await signOut(auth);
+  return;
+}
+
     
-// OPTIONAL EXTRA SAFETY (recommended)
-if (!data.active) {
-  await signOut(auth);
-  return;
-}
     // ✅ SUCCESS
     loginGate.style.display = "none";
     showSection("home");
