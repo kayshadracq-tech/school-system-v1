@@ -170,19 +170,13 @@
 </div>      
   
 
-  
-
-
-
-<script type="module">
-
+  <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth,
   signInWithEmailAndPassword,
   onAuthStateChanged,
-  signOut,
-  createUserWithEmailAndPassword
+  signOut
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import {
@@ -195,7 +189,7 @@ import {
   setDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* FIREBASE */
+/* FIREBASE CONFIG */
 const firebaseConfig = {
   apiKey: "AIzaSyARjhhYGo-_QUisiYa5AfUVqoJ3cHgLZM0",
   authDomain: "school-system-748cf.firebaseapp.com",
@@ -205,18 +199,19 @@ const firebaseConfig = {
   appId: "1:899412742738:web:7dc83a50b53789b196858b"
 };
 
+/* INIT */
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-/* ELEMENTS */
+/* LOGIN UI */
+const loginGate = document.getElementById("loginGate");
 const adminLoginBtn = document.getElementById("adminLoginBtn");
 const adminEmail = document.getElementById("adminEmail");
 const adminPass = document.getElementById("adminPass");
 const adminError = document.getElementById("adminError");
-const loginGate = document.getElementById("loginGate");
 
-/* STATES */
+/* STATE */
 let sEdit = null;
 let rEdit = null;
 let fEdit = null;
@@ -247,87 +242,47 @@ const studentTable = document.getElementById("studentTable");
 const resultsTable = document.getElementById("resultsTable");
 const feesTable = document.getElementById("feesTable");
 
-/* LOGIN */
+/* ================= LOGIN ================= */
 adminLoginBtn.onclick = async () => {
   adminError.innerText = "";
+
   try {
     await signInWithEmailAndPassword(
       auth,
       adminEmail.value.trim(),
       adminPass.value.trim()
     );
-  } catch {
+  } catch (e) {
     adminError.innerText = "Invalid email or password";
   }
 };
-  
-/* AUTH */
+
+/* ================= AUTH GUARD ================= */
 onAuthStateChanged(auth, async (user) => {
 
-  // NOT LOGGED IN
   if (!user) {
-
     loginGate.style.display = "flex";
-
-    document.querySelectorAll(".section").forEach(section => {
-      section.style.display = "none";
-    });
-
+    document.querySelectorAll(".section").forEach(s => s.style.display = "none");
     return;
   }
 
-  try {
+  loginGate.style.display = "none";
+  showSection("home");
 
-    const q = await getDocs(collection(db, "admins"));
-
-    const snap = q.docs.find(d =>
-      d.data().email === user.email
-    );
-
-    // NOT ADMIN
-    if (!snap || snap.data().role !== "admin") {
-
-      loginGate.style.display = "flex";
-
-      document.querySelectorAll(".section").forEach(section => {
-        section.style.display = "none";
-      });
-
-      adminError.innerText = "Admin access only";
-
-      return;
-    }
-
-    // ADMIN SUCCESS
-    document.getElementById("adminName").innerText = user.email;
-
-    loginGate.style.display = "none";
-
-    showSection("home");
-
-    loadStudents();
-    loadResults();
-    loadFees();
-
-  } catch (err) {
-
-    console.error(err);
-
-    adminError.innerText = "Authentication error";
-
-  }
-
+  loadStudents();
+  loadResults();
+  loadFees();
 });
 
-
-/* NAVIGATION */
+/* ================= NAV ================= */
 window.showSection = (section) => {
-  document.querySelectorAll(".menu-item").forEach(i => i.classList.remove("active"));
+
   document.querySelectorAll(".section").forEach(s => s.style.display = "none");
 
   document.getElementById(section).style.display = "block";
 
   const map = { home: 0, students: 1, results: 2, fees: 3 };
+
   document.querySelectorAll(".menu-item")[map[section]].classList.add("active");
 };
 
@@ -338,61 +293,37 @@ async function idExists(id) {
   return snap.docs.some(d => d.data().studentId === id);
 }
 
+/* ADD STUDENT (FIXED - NO AUTH SWITCHING) */
 window.addStudentBtn.onclick = async () => {
 
   const id = studentId.value.trim();
 
   if (await idExists(id)) {
-    return alert("Student ID exists");
+    return alert("Student ID already exists");
   }
 
   try {
-
-    // SAVE ADMIN LOGIN DETAILS
-    const adminMail = adminEmail.value.trim();
-    const adminPassword = adminPass.value.trim();
-
-    // CREATE STUDENT ACCOUNT
-    const userCred = await createUserWithEmailAndPassword(
-      auth,
-      email.value.trim(),
-      password.value.trim()
-    );
-
-    // SAVE STUDENT DATA
     await setDoc(doc(db, "students", id), {
-      uid: userCred.user.uid,
       name: name.value,
       email: email.value,
       studentId: id,
       age: age.value,
       grade: grade.value,
-      class: classInput.value
+      class: classInput.value,
+      password: password.value,
+      createdAt: new Date()
     });
 
-    // LOG OUT STUDENT ACCOUNT
-    await signOut(auth);
-
-    // LOGIN ADMIN AGAIN
-    await signInWithEmailAndPassword(
-      auth,
-      adminMail,
-      adminPassword
-    );
-
     loadStudents();
-
     alert("Student added successfully");
 
   } catch (e) {
-
     console.error(e);
-
     alert(e.message);
-
   }
 };
 
+/* UPDATE STUDENT */
 window.updateStudentBtn.onclick = async () => {
 
   if (!sEdit) return alert("Select student");
@@ -408,10 +339,9 @@ window.updateStudentBtn.onclick = async () => {
 
   sEdit = null;
   loadStudents();
-
-  alert("Student updated successfully");
 };
 
+/* LOAD STUDENTS */
 async function loadStudents() {
 
   studentTable.innerHTML = "";
@@ -483,12 +413,12 @@ window.addResultBtn.onclick = async () => {
   });
 
   loadResults();
-  alert("Result added successfully");
 };
 
+/* UPDATE RESULTS */
 window.updateResultBtn.onclick = async () => {
 
-  if (!rEdit) return alert("Select result first");
+  if (!rEdit) return alert("Select result");
 
   await updateDoc(doc(db, "marks", rEdit), {
     studentId: r_studentId.value,
@@ -500,10 +430,9 @@ window.updateResultBtn.onclick = async () => {
 
   rEdit = null;
   loadResults();
-
-  alert("Result successfully updated");
 };
 
+/* LOAD RESULTS */
 async function loadResults() {
 
   resultsTable.innerHTML = "";
@@ -575,12 +504,12 @@ window.addFeesBtn.onclick = async () => {
   });
 
   loadFees();
-  alert("Fees added successfully");
 };
 
+/* UPDATE FEES */
 window.updateFeesBtn.onclick = async () => {
 
-  if (!fEdit) return alert("Select fees record");
+  if (!fEdit) return alert("Select fees");
 
   const t = Number(total.value) || 0;
   const p = Number(paid.value) || 0;
@@ -596,10 +525,9 @@ window.updateFeesBtn.onclick = async () => {
 
   fEdit = null;
   loadFees();
-
-  alert("Fees updated successfully");
 };
 
+/* LOAD FEES */
 async function loadFees() {
 
   feesTable.innerHTML = "";
@@ -658,13 +586,13 @@ async function loadFees() {
 /* LOGOUT */
 window.logoutAdmin = async () => {
   await signOut(auth);
-  loginGate.style.display = "flex";
-  document.querySelectorAll(".section").forEach(s => s.style.display = "none");
 };
 
 showSection("home");
 
 </script>
 
+
+      
 </body>
 </html>
