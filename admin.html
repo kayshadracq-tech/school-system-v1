@@ -339,7 +339,6 @@ async function idExists(id) {
 }
 
 window.addStudentBtn.onclick = async () => {
-window.addStudentBtn.onclick = async () => {
 
   const id = studentId.value.trim();
 
@@ -349,14 +348,18 @@ window.addStudentBtn.onclick = async () => {
 
   try {
 
-    const adminUser = auth.currentUser;
+    // SAVE ADMIN LOGIN DETAILS
+    const adminMail = adminEmail.value.trim();
+    const adminPassword = adminPass.value.trim();
 
+    // CREATE STUDENT ACCOUNT
     const userCred = await createUserWithEmailAndPassword(
       auth,
       email.value.trim(),
       password.value.trim()
     );
 
+    // SAVE STUDENT DATA
     await setDoc(doc(db, "students", id), {
       uid: userCred.user.uid,
       name: name.value,
@@ -367,14 +370,14 @@ window.addStudentBtn.onclick = async () => {
       class: classInput.value
     });
 
-    // SIGN OUT STUDENT
+    // LOG OUT STUDENT ACCOUNT
     await signOut(auth);
 
-    // SIGN BACK IN ADMIN
+    // LOGIN ADMIN AGAIN
     await signInWithEmailAndPassword(
       auth,
-      adminEmail.value.trim(),
-      adminPass.value.trim()
+      adminMail,
+      adminPassword
     );
 
     loadStudents();
