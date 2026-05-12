@@ -288,19 +288,25 @@ onAuthStateChanged(auth, async (user) => {
     
 // FINAL SAFETY CHECK
 if (!data.uid) {
-  await signOut(auth);
-  return;
-}
-    if (data.role !== "admin") {
-      await signOut(auth);
-      return;
-    }
-
-    if (!["admin", "superAdmin"].includes(data.role)) {
+  adminError.innerText = "Access denied: Invalid admin account";
   await signOut(auth);
   return;
 }
 
+// ROLE SECURITY CHECK (ONLY ADMIN + SUPER ADMIN ALLOWED)
+const allowedRoles = ["admin", "superAdmin"];
+
+if (!allowedRoles.includes(data.role)) {
+  adminError.innerText = "Access denied: Unauthorized role";
+  await signOut(auth);
+  return;
+}
+    
+// OPTIONAL EXTRA SAFETY (recommended)
+if (!data.active) {
+  await signOut(auth);
+  return;
+}
     // ✅ SUCCESS
     loginGate.style.display = "none";
     showSection("home");
