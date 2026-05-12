@@ -264,34 +264,59 @@ adminLoginBtn.onclick = async () => {
 /* AUTH */
 onAuthStateChanged(auth, async (user) => {
 
+  // NOT LOGGED IN
   if (!user) {
+
     loginGate.style.display = "flex";
+
+    document.querySelectorAll(".section").forEach(section => {
+      section.style.display = "none";
+    });
+
     return;
   }
 
   try {
-    const q = await getDocs(collection(db, "admins"));
-    const snap = q.docs.find(d => d.data().email === user.email);
 
+    const q = await getDocs(collection(db, "admins"));
+
+    const snap = q.docs.find(d =>
+      d.data().email === user.email
+    );
+
+    // NOT ADMIN
     if (!snap || snap.data().role !== "admin") {
-      console.log("Non-admin account blocked");
-      await signOut(auth);
+
       loginGate.style.display = "flex";
+
+      document.querySelectorAll(".section").forEach(section => {
+        section.style.display = "none";
+      });
+
+      adminError.innerText = "Admin access only";
+
       return;
     }
 
+    // ADMIN SUCCESS
     document.getElementById("adminName").innerText = user.email;
 
     loginGate.style.display = "none";
 
     showSection("home");
+
     loadStudents();
     loadResults();
     loadFees();
 
   } catch (err) {
-    alert("Error loading admin");
+
+    console.error(err);
+
+    adminError.innerText = "Authentication error";
+
   }
+
 });
 
 /* NAVIGATION */
