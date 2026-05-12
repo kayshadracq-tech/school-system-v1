@@ -265,6 +265,7 @@ adminLoginBtn.onclick = async () => {
 };
 
 /* ================= AUTH GUARD ================= */
+
 onAuthStateChanged(auth, async (user) => {
 
   if (!user) {
@@ -273,14 +274,41 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
 
-  loginGate.style.display = "none";
-  showSection("home");
+  try {
 
-  loadStudents();
-  loadResults();
-  loadFees();
+    const snap = await getDoc(doc(db, "admins", user.uid));
+
+    if (!snap.exists()) {
+      await signOut(auth);
+      return;
+    }
+
+    const data = snap.data();
+
+    if (data.role !== "admin") {
+      await signOut(auth);
+      return;
+    }
+
+    if (!data.active) {
+      await signOut(auth);
+      return;
+    }
+
+    // ✅ SUCCESS
+    loginGate.style.display = "none";
+    showSection("home");
+
+    loadStudents();
+    loadResults();
+    loadFees();
+
+  } catch (err) {
+    console.error(err);
+    await signOut(auth);
+  }
 });
-
+    
 /* ================= NAV ================= */
 window.showSection = (section) => {
 
