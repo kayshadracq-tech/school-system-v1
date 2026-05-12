@@ -197,14 +197,6 @@ onAuthStateChanged(auth, async (user) => {
 
     const student = snap.docs[0].data();
 
-    // 3. ROLE CHECK (IMPORTANT)
-    if (student.role !== "student") {
-
-      // SILENT REDIRECT (NO "ACCESS DENIED")
-      window.location.href = "index.html";
-      return;
-    }
-
     // 4. SUCCESS → SHOW DASHBOARD
     showDashboard();
 
@@ -218,7 +210,11 @@ onAuthStateChanged(auth, async (user) => {
 
     document.getElementById("userTag").innerText =
       student.studentId;
-
+    
+if (!student.studentId) {
+  await signOut(auth);
+  return;
+}
     loadResults();
     loadFees();
 
