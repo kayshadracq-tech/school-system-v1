@@ -285,26 +285,53 @@ onAuthStateChanged(auth, async (user) => {
     }
 
     const data = snap.data();
-    
+
 // ================= ROLE AUTH CHECK =================
 
+// 1. Missing role
 if (!data.role) {
-  adminError.innerText = "Access denied: Role not assigned";
+
+  adminError.innerText =
+    "SECURITY WARNING: Account has no admin role assigned.";
+
   await signOut(auth);
+
+  loginGate.style.display = "flex";
+
   return;
 }
 
+// 2. Unauthorized role
 if (!["admin", "superAdmin"].includes(data.role)) {
-  adminError.innerText = "Access denied: You are not authorized to access admin dashboard";
+
+  adminError.innerText =
+    "ACCESS DENIED: Unauthorized attempt detected.";
+
   await signOut(auth);
+
+  loginGate.style.display = "flex";
+
   return;
 }
 
+// 3. Disabled account
 if (data.active === false) {
-  adminError.innerText = "Account disabled. Contact system administrator";
+
+  adminError.innerText =
+    "ACCOUNT DISABLED: Contact system administrator.";
+
   await signOut(auth);
+
+  loginGate.style.display = "flex";
+
   return;
 }
+
+// 4. Session security
+window.addEventListener("beforeunload", async () => {
+  await signOut(auth);
+});
+    
 
     
     // ✅ SUCCESS
