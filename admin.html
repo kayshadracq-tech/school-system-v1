@@ -30,6 +30,7 @@
   <div class="menu-item active" onclick="showSection('home')">Dashboard</div>
   <div class="menu-item" onclick="showSection('students')">Students</div>
   <div class="menu-item" onclick="showSection('results')">Results</div>
+  <div class="menu-item" onclick="showSection('teachers')">Teachers</div>
   <div class="menu-item" onclick="showSection('fees')">Fees</div>
 </div>
     
@@ -73,8 +74,15 @@
       <h4>Total Fees Records</h4>
       <p id="totalFees">0</p>
     </div>
+    
+    <div class="card">
+  <h4>Total Teachers</h4>
+  <p id="totalTeachers">0</p>
+    </div>
+  
   </div>
 </div>
+    
 
     <!-- STUDENTS -->
     <div class="section" id="students">
@@ -134,8 +142,42 @@
     <tbody id="resultsTable"></tbody>
   </table>
 
-      
+    
 </div>
+
+<!-- TEACHERS -->
+<div class="section" id="teachers">
+
+  <h2>Teachers Management</h2>
+
+  <input id="t_name" placeholder="Teacher Name">
+  <input id="t_email" placeholder="Teacher Email">
+  <input id="t_teacherId" placeholder="Teacher ID">
+  <input id="t_password" type="password" placeholder="Password">
+  <input id="t_subject" placeholder="Subject">
+
+  <button id="addTeacherBtn" class="add">Add Teacher</button>
+  <button id="updateTeacherBtn" class="update">Update Teacher</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>ID</th>
+        <th>Subject</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+
+    <tbody id="teachersTable"></tbody>
+
+  </table>
+
+</div>
+
+    
     <!-- FEES -->
     <div class="section" id="fees">
 
@@ -170,6 +212,8 @@
 </div>      
   
 
+
+  
   <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -223,6 +267,7 @@ const adminError = document.getElementById("adminError");
 let sEdit = null;
 let rEdit = null;
 let fEdit = null;
+let tEdit = null;
 
 /* INPUTS */
 const name = document.getElementById("name");
@@ -244,11 +289,18 @@ const termFee = document.getElementById("termFee");
 const yearFee = document.getElementById("yearFee");
 const total = document.getElementById("total");
 const paid = document.getElementById("paid");
+    
+const t_name = document.getElementById("t_name");
+const t_email = document.getElementById("t_email");
+const t_teacherId = document.getElementById("t_teacherId");
+const t_password = document.getElementById("t_password");
+const t_subject = document.getElementById("t_subject");
 
 /* TABLES */
 const studentTable = document.getElementById("studentTable");
 const resultsTable = document.getElementById("resultsTable");
-const feesTable = document.getElementById("feesTable");
+const feesTable = document.getElementById("feesTable"); 
+const teachersTable = document.getElementById("teachersTable");   
 
 /* ================= LOGIN ================= */
 adminLoginBtn.onclick = async () => {
@@ -333,14 +385,22 @@ window.addEventListener("beforeunload", async () => {
 });
     
 
+    // SUPER ADMIN CHECK
+if (data.role !== "superAdmin") {
+
+  document.querySelectorAll(".superAdminOnly")
+    .forEach(el => el.style.display = "none");
+
+}
     
     // ✅ SUCCESS
     loginGate.style.display = "none";
     showSection("home");
 
-    loadStudents();
-    loadResults();
-    loadFees();
+      loadStudents();
+      loadResults();
+      loadTeachers();
+      loadFees();
 
   } catch (err) {
     console.error(err);
@@ -355,7 +415,13 @@ window.showSection = (section) => {
 
   document.getElementById(section).style.display = "block";
 
-  const map = { home: 0, students: 1, results: 2, fees: 3 };
+  const map = {
+  home: 0,
+  students: 1,
+  results: 2,
+  teachers: 3,
+  fees: 4
+};
 
   document.querySelectorAll(".menu-item")[map[section]].classList.add("active");
 };
@@ -577,6 +643,138 @@ async function loadResults() {
   });
 }
 
+
+
+/* ================= TEACHERS ================= */
+
+window.addTeacherBtn.onclick = async () => {
+
+  try {
+
+    const tempApp = initializeApp(firebaseConfig, "tempTeacherApp");
+    const tempAuth = getAuth(tempApp);
+
+    const userCred = await createUserWithEmailAndPassword(
+      tempAuth,
+      t_email.value.trim(),
+      t_password.value.trim()
+    );
+
+    const uid = userCred.user.uid;
+
+    await setDoc(doc(db, "teachers", uid), {
+
+      uid: uid,
+      name: t_name.value,
+      email: t_email.value,
+      teacherId: t_teacherId.value,
+      subject: t_subject.value,
+      role: "teacher",
+      active: true
+
+    });
+
+    await signOut(tempAuth);
+
+    alert("Teacher added successfully");
+
+    loadTeachers();
+
+  } catch (e) {
+
+    console.error(e);
+    alert(e.message);
+
+  }
+};
+
+window.updateTeacherBtn.onclick = async () => {
+
+  if (!tEdit) return alert("Select teacher");
+
+  await updateDoc(doc(db, "teachers", tEdit), {
+
+    name: t_name.value,
+    email: t_email.value,
+    teacherId: t_teacherId.value,
+    subject: t_subject.value
+
+  });
+
+  tEdit = null;
+
+  loadTeachers();
+};
+
+async function loadTeachers() {
+
+  teachersTable.innerHTML = "";
+
+  const snap = await getDocs(collection(db, "teachers"));
+
+  document.getElementById("totalTeachers").innerText = snap.size;
+
+  snap.forEach(d => {
+
+    const t = d.data();
+
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${t.name}</td>
+      <td>${t.email}</td>
+      <td>${t.teacherId}</td>
+      <td>${t.subject}</td>
+      <td>${t.active ? "Enabled" : "Disabled"}</td>
+      <td></td>
+    `;
+
+    const action = row.children[5];
+
+    const edit = document.createElement("button");
+    edit.className = "edit";
+    edit.textContent = "Edit";
+
+    edit.onclick = () => {
+
+      tEdit = d.id;
+
+      t_name.value = t.name;
+      t_email.value = t.email;
+      t_teacherId.value = t.teacherId;
+      t_subject.value = t.subject;
+
+    };
+
+    const toggle = document.createElement("button");
+
+    toggle.className = t.active ? "delete" : "add";
+
+    toggle.textContent = t.active
+      ? "Disable"
+      : "Enable";
+
+    toggle.onclick = async () => {
+
+      await updateDoc(doc(db, "teachers", d.id), {
+
+        active: !t.active
+
+      });
+
+      loadTeachers();
+
+    };
+
+    action.appendChild(edit);
+    action.appendChild(toggle);
+
+    teachersTable.appendChild(row);
+
+  });
+}
+    
+    
 /* ================= FEES ================= */
 
 window.addFeesBtn.onclick = async () => {
