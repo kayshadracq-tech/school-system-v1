@@ -381,14 +381,17 @@ if (data.active === false) {
 }
 
 
-    
     // SUPER ADMIN CHECK
-if (data.role !== "superAdmin") {
+document.querySelectorAll(".superAdminOnly")
+  .forEach(el => {
 
-  document.querySelectorAll(".superAdminOnly")
-    .forEach(el => el.style.display = "none");
+    if (data.role === "superAdmin") {
+      el.style.display = "";
+    } else {
+      el.style.display = "none";
+    }
 
-}
+  });
     
     // ✅ SUCCESS
     loginGate.style.display = "none";
