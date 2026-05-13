@@ -302,6 +302,7 @@ const resultsTable = document.getElementById("resultsTable");
 const feesTable = document.getElementById("feesTable"); 
 const teachersTable = document.getElementById("teachersTable");   
 
+    
 /* ================= LOGIN ================= */
 adminLoginBtn.onclick = async () => {
   adminError.innerText = "";
@@ -412,21 +413,19 @@ window.showSection = (section) => {
 
   document.querySelectorAll(".section")
     .forEach(s => s.style.display = "none");
-  
+
   document.querySelectorAll(".menu-item")
-  .forEach(m => m.classList.remove("active"));
+    .forEach(m => m.classList.remove("active"));
 
   document.getElementById(section).style.display = "block";
 
-  const map = {
-  home: 0,
-  students: 1,
-  results: 2,
-  teachers: 3,
-  fees: 4
-};
+  const activeMenu = document.querySelector(
+    `.menu-item[onclick="showSection('${section}')"]`
+  );
 
-  document.querySelectorAll(".menu-item")[map[section]].classList.add("active");
+  if (activeMenu) {
+    activeMenu.classList.add("active");
+  }
 };
 
 /* ================= STUDENTS ================= */
