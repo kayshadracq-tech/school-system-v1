@@ -30,7 +30,7 @@
   <div class="menu-item active" onclick="showSection('home')">Dashboard</div>
   <div class="menu-item" onclick="showSection('students')">Students</div>
   <div class="menu-item" onclick="showSection('results')">Results</div>
-  <div class="menu-item" onclick="showSection('teachers')">Teachers</div>
+  <div class="menu-item superAdminOnly" onclick="showSection('teachers')">Teachers</div>
   <div class="menu-item" onclick="showSection('fees')">Fees</div>
 </div>
     
@@ -357,7 +357,7 @@ if (!data.role) {
 if (!["admin", "superAdmin"].includes(data.role)) {
 
   adminError.innerText =
-    "ACCESS DENIED: Unauthorized attempt detected.";
+    "Access denied: You are not authorized to access this dashboard.";
 
   await signOut(auth);
 
@@ -391,6 +391,9 @@ if (data.role !== "superAdmin") {
     
     // ✅ SUCCESS
     loginGate.style.display = "none";
+    window.addEventListener("beforeunload", async () => {
+  await signOut(auth);
+});
     showSection("home");
 
       loadStudents();
@@ -460,6 +463,8 @@ window.addStudentBtn.onclick = async () => {
       uid: uid,
       studentId: id,
       name: name.value,
+      role: "student",
+      active: true,
       email: email.value,
       age: age.value,
       grade: grade.value,
