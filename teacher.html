@@ -165,19 +165,14 @@ if (data.active === false) {
   return;
 }
 
-if (!data.role || data.role !== "teacher") {
+   // ROLE CHECK 
+
+    if (!data.role || data.role !== "teacher") {
   await signOut(auth);
   showLogin();
   return;
 }
-
-    // ROLE CHECK
-    if (data.role !== "teacher") {
-      await signOut(auth);
-      showLogin();
-      return;
-    }
-
+    
     // SUCCESS → SHOW DASHBOARD
     teacherSubject = data.subject || "";
 
