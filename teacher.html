@@ -157,6 +157,27 @@ onAuthStateChanged(auth, async (user) => {
     }
 
     const data = snap.data();
+    
+    const snap = await getDoc(doc(db, "teachers", user.uid));
+
+if (!snap.exists()) {
+  await signOut(auth);
+  return;
+}
+
+const data = snap.data();
+
+/* 🔴 ADD THIS BELOW data */
+if (data.active === false) {
+  alert("Account disabled. Contact admin.");
+  await signOut(auth);
+  return;
+}
+
+if (!data.role || data.role !== "teacher") {
+  await signOut(auth);
+  return;
+                          }
 
     // ROLE CHECK
     if (data.role !== "teacher") {
