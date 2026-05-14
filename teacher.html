@@ -149,35 +149,27 @@ onAuthStateChanged(auth, async (user) => {
     // GET TEACHER RECORD
     const snap = await getDoc(doc(db, "teachers", user.uid));
 
-    // NOT FOUND → LOG OUT SILENTLY
-    if (!snap.exists()) {
-      await signOut(auth);
-      showLogin();
-      return;
-    }
-
-    const data = snap.data();
-    
-    const snap = await getDoc(doc(db, "teachers", user.uid));
-
 if (!snap.exists()) {
   await signOut(auth);
+  showLogin();
   return;
 }
 
 const data = snap.data();
 
-/* 🔴 ADD THIS BELOW data */
+/* 🔴 SECURITY CHECK */
 if (data.active === false) {
   alert("Account disabled. Contact admin.");
   await signOut(auth);
+  showLogin();
   return;
 }
 
 if (!data.role || data.role !== "teacher") {
   await signOut(auth);
+  showLogin();
   return;
-                          }
+}
 
     // ROLE CHECK
     if (data.role !== "teacher") {
