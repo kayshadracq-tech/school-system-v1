@@ -196,6 +196,17 @@ onAuthStateChanged(auth, async (user) => {
     }
 
     const student = snap.docs[0].data();
+    
+  if (student.active === false) {
+  alert("Account disabled. Contact admin.");
+  await signOut(auth);
+  return;
+}
+
+if (!student.studentId) {
+  await signOut(auth);
+  return;
+  }
 
     // 4. SUCCESS → SHOW DASHBOARD
     showDashboard();
