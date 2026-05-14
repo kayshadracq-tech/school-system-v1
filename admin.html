@@ -407,10 +407,7 @@ document.querySelectorAll(".superAdminOnly")
 
     
     // ✅ SUCCESS
-    loginGate.style.display = "none";
-    window.addEventListener("beforeunload", async () => {
-  await signOut(auth);
-});
+    
     showSection("home");
 
       loadStudents();
