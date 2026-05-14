@@ -263,8 +263,12 @@ td:last-child {
   }
 
   .sidebar-footer {
-    display: none;
-  }
+  display: block;
+  margin-left: auto;
+  border-top: none;
+  padding-top: 0;
+  white-space: nowrap;
+}
 
   .main {
     padding: 10px;
