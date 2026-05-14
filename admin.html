@@ -351,7 +351,8 @@ onAuthStateChanged(auth, async (user) => {
 
     const data = snap.data();
     
-
+    document.getElementById("adminName").innerText = data.name || "Admin";
+    document.getElementById("adminRole").innerText = data.role || "Administrator";
 // ================= ROLE AUTH CHECK =================
 
 // 1. Missing role
